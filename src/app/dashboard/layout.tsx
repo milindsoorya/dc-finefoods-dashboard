@@ -25,8 +25,16 @@ export default async function DashboardLayout({
     .eq("id", user.id)
     .single();
 
-  const userRole: UserRole = (profile?.role as UserRole) || "worker";
-  const userName: string = profile?.full_name || user.email || "User";
+  // Check account status
+  if (!profile || profile.account_status === "pending") {
+    redirect("/pending");
+  }
+  if (profile.account_status === "suspended") {
+    redirect("/suspended");
+  }
+
+  const userRole: UserRole = (profile.role as UserRole) || "worker";
+  const userName: string = profile.full_name || user.email || "User";
 
   return (
     <div className="min-h-screen bg-background">

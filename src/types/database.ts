@@ -1,5 +1,7 @@
 export type UserRole = "worker" | "manager" | "stakeholder";
 
+export type AccountStatus = "pending" | "approved" | "suspended";
+
 export type CashewGrade = "WW180" | "WW240" | "WW320" | "Roasted" | "Custom";
 
 export type ShipmentStatus =
@@ -10,12 +12,33 @@ export type ShipmentStatus =
 
 export type QualityStatus = "pending" | "approved" | "rejected";
 
+export type AuditAction =
+  | "insert"
+  | "update"
+  | "delete"
+  | "approve_user"
+  | "suspend_user"
+  | "change_role";
+
 export interface Profile {
   id: string;
   email: string;
   full_name: string;
   role: UserRole;
+  account_status: AccountStatus;
   assigned_stage: string | null;
+  created_at: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  user_id: string;
+  user_email: string;
+  action: AuditAction;
+  table_name: string;
+  record_id: string | null;
+  old_data: Record<string, unknown> | null;
+  new_data: Record<string, unknown> | null;
   created_at: string;
 }
 
