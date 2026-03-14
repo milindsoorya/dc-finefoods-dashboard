@@ -17,6 +17,7 @@ import {
   Ship,
   Users,
   History,
+  Settings,
   LogOut,
   Menu,
   X,
@@ -140,6 +141,19 @@ export function Sidebar({ userRole, userName }: SidebarProps) {
             <p className="text-xs text-muted-foreground">{roleLabel}</p>
           </div>
         </div>
+        <Link
+          href="/dashboard/settings"
+          onClick={() => setMobileOpen(false)}
+          className={cn(
+            "flex items-center gap-2 text-sm w-full px-2 py-1.5 rounded transition-colors",
+            pathname === "/dashboard/settings"
+              ? "text-primary font-medium"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Settings className="h-4 w-4" />
+          Settings
+        </Link>
         <button
           onClick={handleLogout}
           className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive w-full px-2 py-1.5 rounded transition-colors cursor-pointer"
