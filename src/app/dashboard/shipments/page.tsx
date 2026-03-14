@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card } from "@/components/ui/card";
@@ -37,7 +37,7 @@ export default function ShipmentsPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [userRole, setUserRole] = useState<UserRole>("worker");
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const fetchData = useCallback(async () => {
     const { data } = await supabase
@@ -148,15 +148,15 @@ export default function ShipmentsPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input id="customer_name" name="customer_name" label="Customer Name" placeholder="Al Rashid Trading LLC" required />
           <Input id="destination" name="destination" label="Destination" placeholder="Dubai, UAE" required />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Select id="grade" name="grade" label="Grade" options={gradeOptions} defaultValue="WW240" />
             <Input id="total_weight_kg" name="total_weight_kg" label="Total Weight (kg)" type="number" min={1} required />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input id="container_number" name="container_number" label="Container #" placeholder="MSKU-7234567" />
             <Input id="bill_of_lading" name="bill_of_lading" label="Bill of Lading" placeholder="BL-2026-0042" />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input id="departure_date" name="departure_date" label="Departure Date" type="date" required />
             <Input id="arrival_date" name="arrival_date" label="Est. Arrival" type="date" />
           </div>

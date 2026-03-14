@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/dashboard/sidebar";
+import { ErrorBoundary } from "@/components/error-boundary";
 import type { UserRole } from "@/types/database";
 
 export default async function DashboardLayout({
@@ -40,7 +41,9 @@ export default async function DashboardLayout({
     <div className="min-h-screen bg-background">
       <Sidebar userRole={userRole} userName={userName} />
       <main className="lg:ml-64 min-h-screen">
-        <div className="p-4 pt-16 lg:pt-6 lg:p-8">{children}</div>
+        <div className="p-3 pt-16 sm:p-4 sm:pt-16 lg:pt-6 lg:p-8">
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </div>
       </main>
     </div>
   );

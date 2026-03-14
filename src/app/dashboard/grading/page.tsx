@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card } from "@/components/ui/card";
@@ -30,7 +30,7 @@ export default function GradingPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [userRole, setUserRole] = useState<UserRole>("worker");
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const fetchData = useCallback(async () => {
     const { data } = await supabase

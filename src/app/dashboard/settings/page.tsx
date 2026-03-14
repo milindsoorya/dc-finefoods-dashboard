@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -18,7 +18,7 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordMsg, setPasswordMsg] = useState("");
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     async function load() {
