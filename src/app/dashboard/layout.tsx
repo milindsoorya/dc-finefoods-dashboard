@@ -1,0 +1,39 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { Sidebar } from "@/components/dashboard/sidebar";
+import type { UserRole } from "@/types/database";
+
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  // Get user profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  const userRole: UserRole = (profile?.role as UserRole) || "worker";
+  const userName: string = profile?.full_name || user.email || "User";
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Sidebar userRole={userRole} userName={userName} />
+      <main className="lg:ml-64 min-h-screen">
+        <div className="p-4 pt-16 lg:pt-6 lg:p-8">{children}</div>
+      </main>
+    </div>
+  );
+}
