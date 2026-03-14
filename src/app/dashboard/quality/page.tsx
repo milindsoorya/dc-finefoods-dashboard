@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card } from "@/components/ui/card";
@@ -22,7 +22,7 @@ export default function QualityPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [userRole, setUserRole] = useState<UserRole>("worker");
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const fetchData = useCallback(async () => {
     const { data } = await supabase
@@ -133,7 +133,7 @@ export default function QualityPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input id="batch_id" name="batch_id" label="QC Batch ID" placeholder="QC-2026-005" required />
           <Input id="grading_batch_id" name="grading_batch_id" label="Grading Batch ID" placeholder="GRD-2026-001" required />
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Input id="aflatoxin_ppb" name="aflatoxin_ppb" label="Aflatoxin (ppb)" type="number" step="0.1" min={0} required />
             <Input id="moisture_percent" name="moisture_percent" label="Moisture %" type="number" step="0.1" min={0} max={100} required />
             <Input id="broken_percent" name="broken_percent" label="Broken %" type="number" step="0.1" min={0} max={100} required />

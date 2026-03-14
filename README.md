@@ -1,36 +1,132 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DC Fine Foods — Internal Dashboard
+
+Internal operations dashboard for DC Fine Foods cashew processing pipeline. Track intake, processing, grading, quality, packaging, stock, and shipments.
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router, TypeScript) |
+| Styling | Tailwind CSS v4 |
+| Backend | Supabase (PostgreSQL + Auth + RLS) |
+| Charts | Recharts |
+| Icons | Lucide React |
+| Hosting | Vercel |
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+# 1. Install dependencies
+npm install
+
+# 2. Copy environment template
+cp .env.local.example .env.local
+# Fill in your Supabase URL and anon key
+
+# 3. Run database setup
+# Execute supabase/schema.sql in Supabase SQL Editor
+# Then execute supabase/migration-002-security.sql
+
+# 4. Start dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Branch Strategy
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Branch | Purpose |
+|---|---|
+| `main` | Production — only approved PRs merge here |
+| `dev/*` | Feature/fix branches — create PRs to main |
 
-## Learn More
+All PRs to `main` must pass CI (lint + type check + build) before merging.
 
-To learn more about Next.js, take a look at the following resources:
+## Priority TODOs
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### P0 — Critical
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- [ ] **Configure custom SMTP in Supabase** — Free plan limits signup emails to 4/hour. Set up Resend, Brevo, or Postmark under Project Settings > Authentication > SMTP
+- [ ] **Verify RLS policies are applied** — Run `supabase/migration-002-security.sql` in Supabase SQL Editor if not already done. Admin role/status changes require the "Managers can manage profiles" RLS policy
 
-## Deploy on Vercel
+### P1 — High Priority
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- [ ] **Mobile responsiveness audit** — Test all pages on iPhone 13+ and recent Android devices (last 5 years). Check for:
+  - Layout shifts on small screens
+  - Unnecessary zoom on form input focus (viewport meta tag added)
+  - Table readability on narrow screens (horizontal scroll enabled)
+  - Modal usability on mobile
+  - Sidebar overlay behavior
+- [ ] **Add automated tests** — Unit tests for utility functions, integration tests for critical flows (signup, approval, role change)
+- [ ] **Set up GitHub branch protection** — Require PR reviews and passing CI before merge to `main`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### P2 — Important
+
+- [ ] **Add error boundary** — Wrap dashboard layout with React error boundary to prevent white-screen crashes
+- [ ] **Implement rate limiting** — Add rate limits on Supabase Edge Functions for auth endpoints
+- [ ] **Add data export** — Allow managers to export pipeline data as CSV
+- [ ] **Session timeout** — Auto-logout after extended inactivity
+- [ ] **Database backups** — Enable Supabase Point in Time Recovery (Pro plan) or schedule weekly `pg_dump`
+
+### P3 — Nice to Have
+
+- [ ] **Dark mode** — Add theme toggle using CSS variables
+- [ ] **Real-time updates** — Use Supabase Realtime for live dashboard data
+- [ ] **PWA support** — Add service worker for offline access
+- [ ] **Notifications** — Email/push notifications for pending approvals
+
+## Security Model
+
+| Protection | Status |
+|---|---|
+| Role-based access (worker/manager/stakeholder) | Done |
+| Signup approval flow (pending → approved) | Done |
+| Account suspension + reactivation | Done |
+| Row-Level Security on all tables | Done |
+| Soft deletes (no hard delete via API) | Done |
+| Automatic audit logging | Done |
+| No self-role-assignment | Done |
+| CSRF protection (Supabase handles) | Done |
+| Input validation (client-side) | Done |
+| Server-side input validation | TODO |
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── layout.tsx              # Root layout + metadata
+│   ├── login/page.tsx          # Login page
+│   ├── signup/page.tsx         # Signup (request access)
+│   ├── pending/page.tsx        # Awaiting approval
+│   ├── suspended/page.tsx      # Account suspended
+│   └── dashboard/
+│       ├── layout.tsx          # Auth guard + sidebar
+│       ├── page.tsx            # Overview (stats + charts)
+│       ├── intake/             # Raw intake CRUD
+│       ├── processing/         # Processing CRUD
+│       ├── grading/            # Grading CRUD
+│       ├── quality/            # Quality check CRUD
+│       ├── packaging/          # Packaging CRUD
+│       ├── warehouse/          # Stock management
+│       ├── shipments/          # Shipment tracking
+│       ├── users/              # User management (manager only)
+│       ├── audit/              # Audit log (manager only)
+│       └── settings/           # Profile settings
+├── components/
+│   ├── ui/                     # Base components (button, card, table, modal, etc.)
+│   └── dashboard/              # Dashboard-specific (sidebar, stat-card, charts)
+├── lib/
+│   └── supabase/               # Supabase client, server, middleware helpers
+└── types/
+    └── database.ts             # TypeScript interfaces
+```
+
+## CI/CD
+
+GitHub Actions runs on every push to `main` and every PR:
+- ESLint
+- TypeScript type checking
+- Next.js production build
+
+See `.github/workflows/ci.yml`.
