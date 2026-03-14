@@ -16,6 +16,7 @@ import {
   Warehouse,
   Ship,
   Users,
+  History,
   LogOut,
   Menu,
   X,
@@ -37,6 +38,7 @@ const allNavItems = [
   { href: "/dashboard/warehouse", label: "Warehouse", icon: Warehouse, roles: ["worker", "manager", "stakeholder"] },
   { href: "/dashboard/shipments", label: "Shipments", icon: Ship, roles: ["worker", "manager", "stakeholder"] },
   { href: "/dashboard/users", label: "Users", icon: Users, roles: ["manager"] },
+  { href: "/dashboard/audit", label: "Audit Log", icon: History, roles: ["manager"] },
 ];
 
 export function Sidebar({ userRole, userName }: SidebarProps) {
@@ -74,7 +76,7 @@ export function Sidebar({ userRole, userName }: SidebarProps) {
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2">
           Pipeline
         </p>
-        {navItems.map((item) => {
+        {navItems.filter(i => !["Users", "Audit Log"].includes(i.label)).map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== "/dashboard" && pathname.startsWith(item.href));
@@ -96,6 +98,35 @@ export function Sidebar({ userRole, userName }: SidebarProps) {
             </Link>
           );
         })}
+        {navItems.some(i => ["Users", "Audit Log"].includes(i.label)) && (
+          <>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2 mt-4">
+              Admin
+            </p>
+            {navItems.filter(i => ["Users", "Audit Log"].includes(i.label)).map((item) => {
+              const isActive =
+                pathname === item.href ||
+                (item.href !== "/dashboard" && pathname.startsWith(item.href));
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius)] text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  {item.label}
+                  {isActive && <ChevronRight className="h-4 w-4 ml-auto" />}
+                </Link>
+              );
+            })}
+          </>
+        )}
       </nav>
 
       {/* User info + Logout */}
