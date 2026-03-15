@@ -16,13 +16,13 @@ import { formatDate } from "@/lib/utils";
 import type { Profile } from "@/types/database";
 
 const roleOptions = [
-  { value: "worker", label: "Worker" },
-  { value: "manager", label: "Manager" },
-  { value: "stakeholder", label: "Stakeholder" },
+  { value: "worker", label: "Worker — Can add data to pipeline stages" },
+  { value: "manager", label: "Manager — Full access + user management" },
+  { value: "stakeholder", label: "Stakeholder — View-only dashboard access" },
 ];
 
 const stageOptions = [
-  { value: "", label: "All Stages" },
+  { value: "", label: "All Stages — Can add data to any stage" },
   { value: "intake", label: "Raw Intake" },
   { value: "processing", label: "Processing" },
   { value: "grading", label: "Grading" },

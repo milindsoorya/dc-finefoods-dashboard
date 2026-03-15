@@ -4,6 +4,10 @@ import { Sidebar } from "@/components/dashboard/sidebar";
 import { ErrorBoundary } from "@/components/error-boundary";
 import type { UserRole } from "@/types/database";
 
+// Prevent Next.js from caching this layout — always fetch fresh profile data
+// so role/status changes by admin are reflected immediately
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({
   children,
 }: {
@@ -40,8 +44,8 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-background">
       <Sidebar userRole={userRole} userName={userName} />
-      <main className="lg:ml-64 min-h-screen">
-        <div className="p-3 pt-16 sm:p-4 sm:pt-16 lg:pt-6 lg:p-8">
+      <main className="lg:ml-64 min-h-screen overflow-x-hidden">
+        <div className="p-3 pt-16 sm:p-4 sm:pt-16 lg:pt-6 lg:p-8 max-w-full">
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </main>
