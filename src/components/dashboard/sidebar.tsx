@@ -27,30 +27,38 @@ import {
 interface SidebarProps {
   userRole: UserRole;
   userName: string;
+  assignedStage: string | null;
 }
 
 const allNavItems = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard, roles: ["worker", "manager", "stakeholder"] },
-  { href: "/dashboard/intake", label: "Raw Intake", icon: Wheat, roles: ["worker", "manager", "stakeholder"] },
-  { href: "/dashboard/processing", label: "Processing", icon: Cog, roles: ["worker", "manager", "stakeholder"] },
-  { href: "/dashboard/grading", label: "Grading", icon: BarChart3, roles: ["worker", "manager", "stakeholder"] },
-  { href: "/dashboard/quality", label: "Quality Check", icon: ShieldCheck, roles: ["worker", "manager", "stakeholder"] },
-  { href: "/dashboard/packaging", label: "Packaging", icon: Package, roles: ["worker", "manager", "stakeholder"] },
-  { href: "/dashboard/warehouse", label: "Warehouse", icon: Warehouse, roles: ["worker", "manager", "stakeholder"] },
-  { href: "/dashboard/shipments", label: "Shipments", icon: Ship, roles: ["worker", "manager", "stakeholder"] },
-  { href: "/dashboard/users", label: "Users", icon: Users, roles: ["manager"] },
-  { href: "/dashboard/audit", label: "Audit Log", icon: History, roles: ["manager"] },
+  { href: "/dashboard", label: "Overview", icon: LayoutDashboard, roles: ["worker", "manager", "stakeholder"], stage: null },
+  { href: "/dashboard/intake", label: "Raw Intake", icon: Wheat, roles: ["worker", "manager", "stakeholder"], stage: "intake" },
+  { href: "/dashboard/processing", label: "Processing", icon: Cog, roles: ["worker", "manager", "stakeholder"], stage: "processing" },
+  { href: "/dashboard/grading", label: "Grading", icon: BarChart3, roles: ["worker", "manager", "stakeholder"], stage: "grading" },
+  { href: "/dashboard/quality", label: "Quality Check", icon: ShieldCheck, roles: ["worker", "manager", "stakeholder"], stage: "quality" },
+  { href: "/dashboard/packaging", label: "Packaging", icon: Package, roles: ["worker", "manager", "stakeholder"], stage: "packaging" },
+  { href: "/dashboard/warehouse", label: "Warehouse", icon: Warehouse, roles: ["worker", "manager", "stakeholder"], stage: "warehouse" },
+  { href: "/dashboard/shipments", label: "Shipments", icon: Ship, roles: ["worker", "manager", "stakeholder"], stage: "shipments" },
+  { href: "/dashboard/users", label: "Users", icon: Users, roles: ["manager"], stage: null },
+  { href: "/dashboard/audit", label: "Audit Log", icon: History, roles: ["manager"], stage: null },
 ];
 
-export function Sidebar({ userRole, userName }: SidebarProps) {
+export function Sidebar({ userRole, userName, assignedStage }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const supabase = createClient();
 
-  const navItems = allNavItems.filter((item) =>
-    item.roles.includes(userRole)
-  );
+  // Filter nav items by role AND assigned stage
+  // Workers with an assigned stage only see Overview + their stage
+  // Managers and stakeholders see everything their role allows
+  const navItems = allNavItems.filter((item) => {
+    if (!item.roles.includes(userRole)) return false;
+    if (userRole === "worker" && assignedStage && item.stage) {
+      return item.stage === assignedStage;
+    }
+    return true;
+  });
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -64,12 +72,24 @@ export function Sidebar({ userRole, userName }: SidebarProps) {
     stakeholder: "Stakeholder",
   }[userRole];
 
+  const pipelineItems = navItems.filter(i => !["Users", "Audit Log"].includes(i.label));
+  const adminItems = navItems.filter(i => ["Users", "Audit Log"].includes(i.label));
+
   const sidebarContent = (
     <>
-      {/* Logo */}
-      <div className="p-4 border-b border-border">
-        <h1 className="text-lg font-bold text-primary">DC Fine Foods</h1>
-        <p className="text-xs text-muted-foreground">Internal Dashboard</p>
+      {/* Logo + mobile close */}
+      <div className="p-4 border-b border-border flex items-center justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-primary">DC Fine Foods</h1>
+          <p className="text-xs text-muted-foreground">Internal Dashboard</p>
+        </div>
+        <button
+          onClick={() => setMobileOpen(false)}
+          className="lg:hidden p-2 -mr-2 rounded-[var(--radius)] hover:bg-muted cursor-pointer"
+          aria-label="Close menu"
+        >
+          <X className="h-5 w-5" />
+        </button>
       </div>
 
       {/* Navigation */}
@@ -77,7 +97,7 @@ export function Sidebar({ userRole, userName }: SidebarProps) {
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2">
           Pipeline
         </p>
-        {navItems.filter(i => !["Users", "Audit Log"].includes(i.label)).map((item) => {
+        {pipelineItems.map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== "/dashboard" && pathname.startsWith(item.href));
@@ -100,12 +120,12 @@ export function Sidebar({ userRole, userName }: SidebarProps) {
             </Link>
           );
         })}
-        {navItems.some(i => ["Users", "Audit Log"].includes(i.label)) && (
+        {adminItems.length > 0 && (
           <>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2 mt-4">
               Admin
             </p>
-            {navItems.filter(i => ["Users", "Audit Log"].includes(i.label)).map((item) => {
+            {adminItems.map((item) => {
               const isActive =
                 pathname === item.href ||
                 (item.href !== "/dashboard" && pathname.startsWith(item.href));
@@ -169,14 +189,16 @@ export function Sidebar({ userRole, userName }: SidebarProps) {
 
   return (
     <>
-      {/* Mobile toggle */}
-      <button
-        onClick={() => setMobileOpen(!mobileOpen)}
-        className="fixed top-3 left-3 z-50 lg:hidden bg-card border border-border rounded-[var(--radius)] p-2.5 shadow-md cursor-pointer active:scale-95 transition-transform"
-        aria-label={mobileOpen ? "Close menu" : "Open menu"}
-      >
-        {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-      </button>
+      {/* Mobile toggle — only show hamburger when sidebar closed */}
+      {!mobileOpen && (
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="fixed top-3 left-3 z-50 lg:hidden bg-card border border-border rounded-[var(--radius)] p-2.5 shadow-md cursor-pointer active:scale-95 transition-transform"
+          aria-label="Open menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+      )}
 
       {/* Mobile overlay */}
       {mobileOpen && (

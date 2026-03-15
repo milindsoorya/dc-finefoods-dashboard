@@ -6,20 +6,23 @@ import type { UserRole } from "@/types/database";
 interface UserRoleContextValue {
   role: UserRole;
   userName: string;
+  assignedStage: string | null;
 }
 
 const UserRoleContext = createContext<UserRoleContextValue>({
   role: "worker",
   userName: "",
+  assignedStage: null,
 });
 
 export function UserRoleProvider({
   role,
   userName,
+  assignedStage,
   children,
 }: UserRoleContextValue & { children: React.ReactNode }) {
   return (
-    <UserRoleContext.Provider value={{ role, userName }}>
+    <UserRoleContext.Provider value={{ role, userName, assignedStage }}>
       {children}
     </UserRoleContext.Provider>
   );

@@ -41,11 +41,12 @@ export default async function DashboardLayout({
 
   const userRole: UserRole = (profile.role as UserRole) || "worker";
   const userName: string = profile.full_name || user.email || "User";
+  const assignedStage: string | null = profile.assigned_stage || null;
 
   return (
-    <UserRoleProvider role={userRole} userName={userName}>
+    <UserRoleProvider role={userRole} userName={userName} assignedStage={assignedStage}>
       <div className="min-h-screen bg-background">
-        <Sidebar userRole={userRole} userName={userName} />
+        <Sidebar userRole={userRole} userName={userName} assignedStage={assignedStage} />
         <main className="lg:ml-64 min-h-screen overflow-x-hidden">
           <div className="p-3 pt-14 sm:p-4 sm:pt-14 lg:pt-6 lg:p-8 max-w-full">
             <ErrorBoundary>{children}</ErrorBoundary>

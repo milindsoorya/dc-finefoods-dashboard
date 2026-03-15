@@ -15,6 +15,7 @@ export default function SettingsPage() {
   const [fullName, setFullName] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordMsg, setPasswordMsg] = useState("");
@@ -42,13 +43,18 @@ export default function SettingsPage() {
     e.preventDefault();
     setSaving(true);
     setSaved(false);
+    setSaveError(null);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      await supabase
+      const { error } = await supabase
         .from("profiles")
         .update({ full_name: fullName })
         .eq("id", user.id);
-      setSaved(true);
+      if (error) {
+        setSaveError(error.message);
+      } else {
+        setSaved(true);
+      }
     }
     setSaving(false);
   }
@@ -116,6 +122,9 @@ export default function SettingsPage() {
             value={profile.email}
             disabled
           />
+          {saveError && (
+            <p role="alert" className="text-sm text-red-600">{saveError}</p>
+          )}
           <div className="flex items-center gap-3">
             <Button type="submit" disabled={saving}>
               {saving ? "Saving..." : "Save Name"}

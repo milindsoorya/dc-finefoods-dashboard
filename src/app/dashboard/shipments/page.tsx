@@ -13,10 +13,12 @@ import { EmptyState } from "@/components/dashboard/empty-state";
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
 } from "@/components/ui/table";
-import { Ship } from "lucide-react";
+import { Ship, Pencil, AlertCircle } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { useUserRole } from "@/contexts/user-role";
 import type { Shipment } from "@/types/database";
+
+const PAGE_SIZE = 50;
 
 const gradeOptions = [
   { value: "WW180", label: "WW180" },
@@ -36,30 +38,54 @@ const statusOptions = [
 export default function ShipmentsPage() {
   const [records, setRecords] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<Shipment | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
   const { role: userRole } = useUserRole();
   const supabase = useMemo(() => createClient(), []);
 
   const fetchData = useCallback(async () => {
-    const { data } = await supabase
+    setFetchError(null);
+    const { data, error } = await supabase
       .from("shipments")
       .select("*")
       .order("departure_date", { ascending: false })
-      .limit(200);
-    setRecords((data as Shipment[]) || []);
+      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+    if (error) {
+      setFetchError(error.message);
+    } else {
+      setRecords((data as Shipment[]) || []);
+    }
     setLoading(false);
-  }, [supabase]);
+  }, [supabase, page]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
+  function openCreateForm() {
+    setEditingRecord(null);
+    setSubmitError(null);
+    setShowForm(true);
+  }
+
+  function openEditForm(record: Shipment) {
+    setEditingRecord(record);
+    setSubmitError(null);
+    setShowForm(true);
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const form = new FormData(e.currentTarget);
-    const { data: { user } } = await supabase.auth.getUser();
+    setSubmitting(true);
+    setSubmitError(null);
 
-    const { error } = await supabase.from("shipments").insert({
+    const form = new FormData(e.currentTarget);
+    const payload = {
       customer_name: form.get("customer_name") as string,
       destination: form.get("destination") as string,
       container_number: (form.get("container_number") as string) || null,
@@ -70,11 +96,28 @@ export default function ShipmentsPage() {
       total_weight_kg: Number(form.get("total_weight_kg")),
       grade: form.get("grade") as string,
       notes: (form.get("notes") as string) || null,
-      created_by: user?.id,
-    });
+    };
 
-    if (!error) {
+    let error;
+    if (editingRecord) {
+      ({ error } = await supabase
+        .from("shipments")
+        .update(payload)
+        .eq("id", editingRecord.id));
+    } else {
+      const { data: { user } } = await supabase.auth.getUser();
+      ({ error } = await supabase.from("shipments").insert({
+        ...payload,
+        created_by: user?.id,
+      }));
+    }
+
+    setSubmitting(false);
+    if (error) {
+      setSubmitError(error.message);
+    } else {
       setShowForm(false);
+      setEditingRecord(null);
       fetchData();
     }
   }
@@ -96,22 +139,31 @@ export default function ShipmentsPage() {
         title="Shipments"
         description="Track export shipments — customers, destinations, containers, and delivery status"
         actionLabel="Add Shipment"
-        onAction={() => setShowForm(true)}
+        onAction={openCreateForm}
         canEdit={canEdit}
       />
+
+      {fetchError && (
+        <div role="alert" className="flex items-center gap-2 px-4 py-3 rounded-[var(--radius)] text-sm font-medium bg-red-50 text-red-800 border border-red-200">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          Failed to load data: {fetchError}
+          <Button size="sm" variant="outline" className="ml-auto" onClick={fetchData}>Retry</Button>
+        </div>
+      )}
 
       <Card className="p-0 overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-muted-foreground">Loading...</div>
-        ) : records.length === 0 ? (
+        ) : records.length === 0 && page === 0 ? (
           <EmptyState
             icon={Ship}
             title="No shipments yet"
             description="Create shipment records for export orders."
-            action={canEdit ? <Button onClick={() => setShowForm(true)} size="sm">Add Shipment</Button> : undefined}
+            action={canEdit ? <Button onClick={openCreateForm} size="sm">Add Shipment</Button> : undefined}
           />
-        ) : (<>
-
+        ) : (
+          <>
+          {/* Desktop Table */}
           <div className="hidden sm:block">
             <Table>
               <TableHeader>
@@ -123,6 +175,7 @@ export default function ShipmentsPage() {
                   <TableHead>Container</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Departure</TableHead>
+                  {canEdit && <TableHead className="w-10"></TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -135,6 +188,13 @@ export default function ShipmentsPage() {
                     <TableCell className="font-mono text-xs">{r.container_number || "—"}</TableCell>
                     <TableCell><Badge variant={statusVariant(r.status)}>{r.status.replace("_", " ")}</Badge></TableCell>
                     <TableCell>{formatDate(r.departure_date)}</TableCell>
+                    {canEdit && (
+                      <TableCell>
+                        <Button size="sm" variant="ghost" onClick={() => openEditForm(r)} aria-label="Edit record">
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -147,7 +207,14 @@ export default function ShipmentsPage() {
               <div key={r.id} className="p-3 space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-medium text-sm truncate">{r.customer_name}</span>
-                  <Badge variant={statusVariant(r.status)}>{r.status.replace("_", " ")}</Badge>
+                  <div className="flex items-center gap-1">
+                    {canEdit && (
+                      <Button size="sm" variant="ghost" onClick={() => openEditForm(r)} aria-label="Edit record" className="h-7 w-7 p-0">
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                    <Badge variant={statusVariant(r.status)}>{r.status.replace("_", " ")}</Badge>
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground">{r.destination}</p>
                 <div className="flex items-center gap-3 text-sm">
@@ -161,36 +228,59 @@ export default function ShipmentsPage() {
               </div>
             ))}
           </div>
-        </>)}
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between px-3 sm:px-4 py-3 border-t border-border">
+            <Button size="sm" variant="outline" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+              Previous
+            </Button>
+            <span className="text-sm text-muted-foreground">Page {page + 1}</span>
+            <Button size="sm" variant="outline" disabled={records.length < PAGE_SIZE} onClick={() => setPage((p) => p + 1)}>
+              Next
+            </Button>
+          </div>
+          </>
+        )}
       </Card>
 
-      <Modal open={showForm} onClose={() => setShowForm(false)} title="Create Shipment" className="sm:max-w-xl">
+      <Modal
+        open={showForm}
+        onClose={() => { setShowForm(false); setEditingRecord(null); }}
+        title={editingRecord ? "Edit Shipment" : "Create Shipment"}
+        className="sm:max-w-xl"
+      >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Input id="customer_name" name="customer_name" label="Customer Name" placeholder="Al Rashid Trading LLC" required />
-          <Input id="destination" name="destination" label="Destination" placeholder="Dubai, UAE" required />
+          {submitError && (
+            <div role="alert" className="flex items-center gap-2 px-3 py-2 rounded-[var(--radius)] text-sm bg-red-50 text-red-800 border border-red-200">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              {submitError}
+            </div>
+          )}
+          <Input id="customer_name" name="customer_name" label="Customer Name" placeholder="Al Rashid Trading LLC" defaultValue={editingRecord?.customer_name} required />
+          <Input id="destination" name="destination" label="Destination" placeholder="Dubai, UAE" defaultValue={editingRecord?.destination} required />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Select id="grade" name="grade" label="Grade" options={gradeOptions} defaultValue="WW240" />
-            <Input id="total_weight_kg" name="total_weight_kg" label="Total Weight (kg)" type="number" min={1} required />
+            <Select id="grade" name="grade" label="Grade" options={gradeOptions} defaultValue={editingRecord?.grade || "WW240"} />
+            <Input id="total_weight_kg" name="total_weight_kg" label="Total Weight (kg)" type="number" min={1} defaultValue={editingRecord ? Number(editingRecord.total_weight_kg) : undefined} required />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input id="container_number" name="container_number" label="Container #" placeholder="MSKU-7234567" />
-            <Input id="bill_of_lading" name="bill_of_lading" label="Bill of Lading" placeholder="BL-2026-0042" />
+            <Input id="container_number" name="container_number" label="Container #" placeholder="MSKU-7234567" defaultValue={editingRecord?.container_number || ""} />
+            <Input id="bill_of_lading" name="bill_of_lading" label="Bill of Lading" placeholder="BL-2026-0042" defaultValue={editingRecord?.bill_of_lading || ""} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input id="departure_date" name="departure_date" label="Departure Date" type="date" required />
-            <Input id="arrival_date" name="arrival_date" label="Est. Arrival" type="date" />
+            <Input id="departure_date" name="departure_date" label="Departure Date" type="date" defaultValue={editingRecord?.departure_date} required />
+            <Input id="arrival_date" name="arrival_date" label="Est. Arrival" type="date" defaultValue={editingRecord?.arrival_date || ""} />
           </div>
           <Select
             id="status"
             name="status"
             label="Status"
             options={statusOptions}
-            defaultValue="preparing"
+            defaultValue={editingRecord?.status || "preparing"}
           />
-          <Input id="notes" name="notes" label="Notes (optional)" />
+          <Input id="notes" name="notes" label="Notes (optional)" defaultValue={editingRecord?.notes || ""} />
           <div className="flex justify-end gap-3 pt-2">
-            <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
-            <Button type="submit">Save Shipment</Button>
+            <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingRecord(null); }}>Cancel</Button>
+            <Button type="submit" disabled={submitting}>{submitting ? "Saving..." : editingRecord ? "Update Shipment" : "Save Shipment"}</Button>
           </div>
         </form>
       </Modal>
