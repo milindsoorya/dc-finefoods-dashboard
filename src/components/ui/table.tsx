@@ -5,9 +5,9 @@ export function Table({
   ...props
 }: React.TableHTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="overflow-x-auto">
+    <div className="w-full overflow-x-auto -webkit-overflow-scrolling-touch">
       <table
-        className={cn("w-full text-sm", className)}
+        className={cn("w-full text-sm min-w-[600px]", className)}
         {...props}
       />
     </div>
@@ -50,7 +50,7 @@ export function TableHead({
   return (
     <th
       className={cn(
-        "h-10 px-4 text-left align-middle font-medium text-muted-foreground",
+        "h-10 px-3 sm:px-4 text-left align-middle font-medium text-muted-foreground text-xs sm:text-sm whitespace-nowrap",
         className
       )}
       {...props}
@@ -63,6 +63,6 @@ export function TableCell({
   ...props
 }: React.TdHTMLAttributes<HTMLTableCellElement>) {
   return (
-    <td className={cn("px-4 py-3 align-middle", className)} {...props} />
+    <td className={cn("px-3 sm:px-4 py-2.5 sm:py-3 align-middle text-sm", className)} {...props} />
   );
 }
