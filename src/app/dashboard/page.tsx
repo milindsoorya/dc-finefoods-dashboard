@@ -27,10 +27,10 @@ export default async function DashboardHome() {
 
   const [intakeRes, processingRes, stockRes, shipmentRes, recentShipments, recentIntake, qualityRes, pendingUsersRes] =
     await Promise.all([
-      supabase.from("raw_intake").select("weight_kg, date_received"),
-      supabase.from("processing").select("output_weight_kg, input_weight_kg"),
-      supabase.from("warehouse_stock").select("weight_kg, grade"),
-      supabase.from("shipments").select("*"),
+      supabase.from("raw_intake").select("weight_kg, date_received").limit(500),
+      supabase.from("processing").select("output_weight_kg, input_weight_kg").limit(500),
+      supabase.from("warehouse_stock").select("weight_kg, grade").limit(500),
+      supabase.from("shipments").select("id, status, total_weight_kg").limit(500),
       supabase
         .from("shipments")
         .select("*")
@@ -41,7 +41,7 @@ export default async function DashboardHome() {
         .select("*")
         .order("date_received", { ascending: false })
         .limit(5),
-      supabase.from("quality_checks").select("status"),
+      supabase.from("quality_checks").select("status").limit(500),
       supabase.from("profiles").select("id").eq("account_status", "pending"),
     ]);
 
@@ -218,35 +218,56 @@ export default async function DashboardHome() {
               Recent Intake
             </CardTitle>
           </CardHeader>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Batch</TableHead>
-                <TableHead>Farm</TableHead>
-                <TableHead>Weight</TableHead>
-                <TableHead>Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {(recentIntake.data || []).map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell className="font-mono text-xs">
-                    {row.batch_id}
-                  </TableCell>
-                  <TableCell>{row.origin_farm}</TableCell>
-                  <TableCell>{Number(row.weight_kg).toLocaleString()}kg</TableCell>
-                  <TableCell>{formatDate(row.date_received)}</TableCell>
-                </TableRow>
-              ))}
-              {(recentIntake.data || []).length === 0 && (
+          {/* Desktop */}
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    No intake records yet
-                  </TableCell>
+                  <TableHead>Batch</TableHead>
+                  <TableHead>Farm</TableHead>
+                  <TableHead>Weight</TableHead>
+                  <TableHead>Date</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {(recentIntake.data || []).map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell className="font-mono text-xs">
+                      {row.batch_id}
+                    </TableCell>
+                    <TableCell>{row.origin_farm}</TableCell>
+                    <TableCell>{Number(row.weight_kg).toLocaleString()}kg</TableCell>
+                    <TableCell>{formatDate(row.date_received)}</TableCell>
+                  </TableRow>
+                ))}
+                {(recentIntake.data || []).length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground">
+                      No intake records yet
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          {/* Mobile */}
+          <div className="sm:hidden divide-y divide-border">
+            {(recentIntake.data || []).map((row) => (
+              <div key={row.id} className="px-1 py-2.5 flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">{row.origin_farm}</p>
+                  <p className="text-xs text-muted-foreground">{row.batch_id}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-sm font-medium">{Number(row.weight_kg).toLocaleString()}kg</p>
+                  <p className="text-xs text-muted-foreground">{formatDate(row.date_received)}</p>
+                </div>
+              </div>
+            ))}
+            {(recentIntake.data || []).length === 0 && (
+              <p className="py-6 text-center text-sm text-muted-foreground">No intake records yet</p>
+            )}
+          </div>
         </Card>
 
         {/* Recent Shipments */}
@@ -257,39 +278,62 @@ export default async function DashboardHome() {
               Recent Shipments
             </CardTitle>
           </CardHeader>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Customer</TableHead>
-                <TableHead>Destination</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Weight</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {(recentShipments.data || []).map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell>{row.customer_name}</TableCell>
-                  <TableCell>{row.destination}</TableCell>
-                  <TableCell>
-                    <Badge variant={statusVariant(row.status)}>
-                      {row.status.replace("_", " ")}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {Number(row.total_weight_kg).toLocaleString()}kg
-                  </TableCell>
-                </TableRow>
-              ))}
-              {(recentShipments.data || []).length === 0 && (
+          {/* Desktop */}
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    No shipments yet
-                  </TableCell>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Destination</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Weight</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {(recentShipments.data || []).map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>{row.customer_name}</TableCell>
+                    <TableCell>{row.destination}</TableCell>
+                    <TableCell>
+                      <Badge variant={statusVariant(row.status)}>
+                        {row.status.replace("_", " ")}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {Number(row.total_weight_kg).toLocaleString()}kg
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {(recentShipments.data || []).length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground">
+                      No shipments yet
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          {/* Mobile */}
+          <div className="sm:hidden divide-y divide-border">
+            {(recentShipments.data || []).map((row) => (
+              <div key={row.id} className="px-1 py-2.5 flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">{row.customer_name}</p>
+                  <p className="text-xs text-muted-foreground">{row.destination}</p>
+                </div>
+                <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                  <Badge variant={statusVariant(row.status)}>
+                    {row.status.replace("_", " ")}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">{Number(row.total_weight_kg).toLocaleString()}kg</span>
+                </div>
+              </div>
+            ))}
+            {(recentShipments.data || []).length === 0 && (
+              <p className="py-6 text-center text-sm text-muted-foreground">No shipments yet</p>
+            )}
+          </div>
         </Card>
       </div>
     </div>

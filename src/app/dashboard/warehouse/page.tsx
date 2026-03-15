@@ -13,9 +13,12 @@ import { EmptyState } from "@/components/dashboard/empty-state";
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
 } from "@/components/ui/table";
-import { Warehouse } from "lucide-react";
+import { Warehouse, Pencil, AlertCircle } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import type { WarehouseStock, UserRole } from "@/types/database";
+import { useUserRole } from "@/contexts/user-role";
+import type { WarehouseStock } from "@/types/database";
+
+const PAGE_SIZE = 50;
 
 const gradeOptions = [
   { value: "WW180", label: "WW180" },
@@ -28,43 +31,77 @@ const gradeOptions = [
 export default function WarehousePage() {
   const [records, setRecords] = useState<WarehouseStock[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [userRole, setUserRole] = useState<UserRole>("worker");
+  const [editingRecord, setEditingRecord] = useState<WarehouseStock | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const { role: userRole } = useUserRole();
   const supabase = useMemo(() => createClient(), []);
 
   const fetchData = useCallback(async () => {
-    const { data } = await supabase
+    setFetchError(null);
+    const { data, error } = await supabase
       .from("warehouse_stock")
       .select("*")
-      .order("updated_at", { ascending: false });
-    setRecords((data as WarehouseStock[]) || []);
+      .order("updated_at", { ascending: false })
+      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+    if (error) {
+      setFetchError(error.message);
+    } else {
+      setRecords((data as WarehouseStock[]) || []);
+    }
     setLoading(false);
-  }, [supabase]);
+  }, [supabase, page]);
 
   useEffect(() => {
     fetchData();
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (user) {
-        const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-        if (profile) setUserRole(profile.role as UserRole);
-      }
-    });
-  }, [fetchData, supabase]);
+  }, [fetchData]);
+
+  function openCreateForm() {
+    setEditingRecord(null);
+    setSubmitError(null);
+    setShowForm(true);
+  }
+
+  function openEditForm(record: WarehouseStock) {
+    setEditingRecord(record);
+    setSubmitError(null);
+    setShowForm(true);
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const form = new FormData(e.currentTarget);
+    setSubmitting(true);
+    setSubmitError(null);
 
-    const { error } = await supabase.from("warehouse_stock").insert({
+    const form = new FormData(e.currentTarget);
+    const payload = {
       grade: form.get("grade") as string,
       weight_kg: Number(form.get("weight_kg")),
       location: form.get("location") as string,
       best_before: (form.get("best_before") as string) || null,
       packaging_batch_id: (form.get("packaging_batch_id") as string) || null,
-    });
+    };
 
-    if (!error) {
+    let error;
+    if (editingRecord) {
+      ({ error } = await supabase
+        .from("warehouse_stock")
+        .update(payload)
+        .eq("id", editingRecord.id));
+    } else {
+      ({ error } = await supabase.from("warehouse_stock").insert(payload));
+    }
+
+    setSubmitting(false);
+    if (error) {
+      setSubmitError(error.message);
+    } else {
       setShowForm(false);
+      setEditingRecord(null);
       fetchData();
     }
   }
@@ -84,9 +121,17 @@ export default function WarehousePage() {
         title="Warehouse Stock"
         description="Current inventory levels by grade, location, and best-before dates"
         actionLabel="Add Stock Entry"
-        onAction={() => setShowForm(true)}
+        onAction={openCreateForm}
         canEdit={canEdit}
       />
+
+      {fetchError && (
+        <div role="alert" className="flex items-center gap-2 px-4 py-3 rounded-[var(--radius)] text-sm font-medium bg-red-50 text-red-800 border border-red-200">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          Failed to load data: {fetchError}
+          <Button size="sm" variant="outline" className="ml-auto" onClick={fetchData}>Retry</Button>
+        </div>
+      )}
 
       {/* Summary Cards */}
       {records.length > 0 && (
@@ -111,15 +156,16 @@ export default function WarehousePage() {
       <Card className="p-0 overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-muted-foreground">Loading...</div>
-        ) : records.length === 0 ? (
+        ) : records.length === 0 && page === 0 ? (
           <EmptyState
             icon={Warehouse}
             title="No stock records yet"
             description="Add warehouse stock entries after packaging."
-            action={canEdit ? <Button onClick={() => setShowForm(true)} size="sm">Add Stock</Button> : undefined}
+            action={canEdit ? <Button onClick={openCreateForm} size="sm">Add Stock</Button> : undefined}
           />
-        ) : (<>
-
+        ) : (
+          <>
+          {/* Desktop Table */}
           <div className="hidden sm:block">
             <Table>
               <TableHeader>
@@ -130,6 +176,7 @@ export default function WarehousePage() {
                   <TableHead>Best Before</TableHead>
                   <TableHead>Pkg Batch</TableHead>
                   <TableHead>Updated</TableHead>
+                  {canEdit && <TableHead className="w-10"></TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -141,6 +188,13 @@ export default function WarehousePage() {
                     <TableCell>{r.best_before ? formatDate(r.best_before) : "—"}</TableCell>
                     <TableCell className="font-mono text-xs">{r.packaging_batch_id || "—"}</TableCell>
                     <TableCell>{formatDate(r.updated_at)}</TableCell>
+                    {canEdit && (
+                      <TableCell>
+                        <Button size="sm" variant="ghost" onClick={() => openEditForm(r)} aria-label="Edit record">
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -153,7 +207,14 @@ export default function WarehousePage() {
               <div key={r.id} className="p-3 space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
                   <Badge variant="default">{r.grade}</Badge>
-                  <span className="font-medium text-sm">{Number(r.weight_kg).toLocaleString()} kg</span>
+                  <div className="flex items-center gap-1">
+                    {canEdit && (
+                      <Button size="sm" variant="ghost" onClick={() => openEditForm(r)} aria-label="Edit record" className="h-7 w-7 p-0">
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                    <span className="font-medium text-sm">{Number(r.weight_kg).toLocaleString()} kg</span>
+                  </div>
                 </div>
                 <p className="text-sm">{r.location}</p>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -163,19 +224,41 @@ export default function WarehousePage() {
               </div>
             ))}
           </div>
-        </>)}
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between px-3 sm:px-4 py-3 border-t border-border">
+            <Button size="sm" variant="outline" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+              Previous
+            </Button>
+            <span className="text-sm text-muted-foreground">Page {page + 1}</span>
+            <Button size="sm" variant="outline" disabled={records.length < PAGE_SIZE} onClick={() => setPage((p) => p + 1)}>
+              Next
+            </Button>
+          </div>
+          </>
+        )}
       </Card>
 
-      <Modal open={showForm} onClose={() => setShowForm(false)} title="Add Stock Entry">
+      <Modal
+        open={showForm}
+        onClose={() => { setShowForm(false); setEditingRecord(null); }}
+        title={editingRecord ? "Edit Stock Entry" : "Add Stock Entry"}
+      >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Select id="grade" name="grade" label="Grade" options={gradeOptions} defaultValue="WW240" />
-          <Input id="weight_kg" name="weight_kg" label="Weight (kg)" type="number" min={1} required />
-          <Input id="location" name="location" label="Location" placeholder="Main Warehouse - A1" defaultValue="Main Warehouse" required />
-          <Input id="best_before" name="best_before" label="Best Before" type="date" />
-          <Input id="packaging_batch_id" name="packaging_batch_id" label="Packaging Batch ID (optional)" placeholder="PKG-2026-001" />
+          {submitError && (
+            <div role="alert" className="flex items-center gap-2 px-3 py-2 rounded-[var(--radius)] text-sm bg-red-50 text-red-800 border border-red-200">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              {submitError}
+            </div>
+          )}
+          <Select id="grade" name="grade" label="Grade" options={gradeOptions} defaultValue={editingRecord?.grade || "WW240"} />
+          <Input id="weight_kg" name="weight_kg" label="Weight (kg)" type="number" min={1} defaultValue={editingRecord ? Number(editingRecord.weight_kg) : undefined} required />
+          <Input id="location" name="location" label="Location" placeholder="Main Warehouse - A1" defaultValue={editingRecord?.location || "Main Warehouse"} required />
+          <Input id="best_before" name="best_before" label="Best Before" type="date" defaultValue={editingRecord?.best_before || ""} />
+          <Input id="packaging_batch_id" name="packaging_batch_id" label="Packaging Batch ID (optional)" placeholder="PKG-2026-001" defaultValue={editingRecord?.packaging_batch_id || ""} />
           <div className="flex justify-end gap-3 pt-2">
-            <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
-            <Button type="submit">Save Entry</Button>
+            <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingRecord(null); }}>Cancel</Button>
+            <Button type="submit" disabled={submitting}>{submitting ? "Saving..." : editingRecord ? "Update Entry" : "Save Entry"}</Button>
           </div>
         </form>
       </Modal>

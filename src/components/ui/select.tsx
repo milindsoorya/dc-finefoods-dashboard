@@ -13,6 +13,8 @@ export interface SelectProps
 
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ className, label, error, id, options, placeholder, ...props }, ref) => {
+    const errorId = error && id ? `${id}-error` : undefined;
+
     return (
       <div className="space-y-1.5">
         {label && (
@@ -28,6 +30,8 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
             className
           )}
           ref={ref}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={errorId}
           {...props}
         >
           {placeholder && (
@@ -41,7 +45,11 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
             </option>
           ))}
         </select>
-        {error && <p className="text-xs text-destructive">{error}</p>}
+        {error && (
+          <p id={errorId} className="text-xs text-destructive" role="alert">
+            {error}
+          </p>
+        )}
       </div>
     );
   }
