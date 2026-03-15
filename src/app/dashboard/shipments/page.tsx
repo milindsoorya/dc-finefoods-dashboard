@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/table";
 import { Ship } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import type { Shipment, UserRole } from "@/types/database";
+import { useUserRole } from "@/contexts/user-role";
+import type { Shipment } from "@/types/database";
 
 const gradeOptions = [
   { value: "WW180", label: "WW180" },
@@ -36,27 +37,22 @@ export default function ShipmentsPage() {
   const [records, setRecords] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [userRole, setUserRole] = useState<UserRole>("worker");
+  const { role: userRole } = useUserRole();
   const supabase = useMemo(() => createClient(), []);
 
   const fetchData = useCallback(async () => {
     const { data } = await supabase
       .from("shipments")
       .select("*")
-      .order("departure_date", { ascending: false });
+      .order("departure_date", { ascending: false })
+      .limit(200);
     setRecords((data as Shipment[]) || []);
     setLoading(false);
   }, [supabase]);
 
   useEffect(() => {
     fetchData();
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (user) {
-        const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-        if (profile) setUserRole(profile.role as UserRole);
-      }
-    });
-  }, [fetchData, supabase]);
+  }, [fetchData]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { UserRoleProvider } from "@/contexts/user-role";
 import type { UserRole } from "@/types/database";
 
 // Prevent Next.js from caching this layout — always fetch fresh profile data
@@ -26,7 +27,7 @@ export default async function DashboardLayout({
   // Get user profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("*")
+    .select("role, account_status, full_name, assigned_stage")
     .eq("id", user.id)
     .single();
 
@@ -42,13 +43,15 @@ export default async function DashboardLayout({
   const userName: string = profile.full_name || user.email || "User";
 
   return (
-    <div className="min-h-screen bg-background">
-      <Sidebar userRole={userRole} userName={userName} />
-      <main className="lg:ml-64 min-h-screen overflow-x-hidden">
-        <div className="p-3 pt-14 sm:p-4 sm:pt-14 lg:pt-6 lg:p-8 max-w-full">
-          <ErrorBoundary>{children}</ErrorBoundary>
-        </div>
-      </main>
-    </div>
+    <UserRoleProvider role={userRole} userName={userName}>
+      <div className="min-h-screen bg-background">
+        <Sidebar userRole={userRole} userName={userName} />
+        <main className="lg:ml-64 min-h-screen overflow-x-hidden">
+          <div className="p-3 pt-14 sm:p-4 sm:pt-14 lg:pt-6 lg:p-8 max-w-full">
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </div>
+        </main>
+      </div>
+    </UserRoleProvider>
   );
 }

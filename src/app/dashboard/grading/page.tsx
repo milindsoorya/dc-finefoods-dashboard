@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/table";
 import { BarChart3 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import type { Grading, UserRole } from "@/types/database";
+import { useUserRole } from "@/contexts/user-role";
+import type { Grading } from "@/types/database";
 
 const gradeOptions = [
   { value: "WW180", label: "WW180 (Premium)" },
@@ -29,27 +30,22 @@ export default function GradingPage() {
   const [records, setRecords] = useState<Grading[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [userRole, setUserRole] = useState<UserRole>("worker");
+  const { role: userRole } = useUserRole();
   const supabase = useMemo(() => createClient(), []);
 
   const fetchData = useCallback(async () => {
     const { data } = await supabase
       .from("grading")
       .select("*")
-      .order("date_graded", { ascending: false });
+      .order("date_graded", { ascending: false })
+      .limit(200);
     setRecords((data as Grading[]) || []);
     setLoading(false);
   }, [supabase]);
 
   useEffect(() => {
     fetchData();
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (user) {
-        const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-        if (profile) setUserRole(profile.role as UserRole);
-      }
-    });
-  }, [fetchData, supabase]);
+  }, [fetchData]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

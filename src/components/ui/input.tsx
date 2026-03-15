@@ -11,6 +11,8 @@ export interface InputProps
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, id, ...props }, ref) => {
+    const errorId = error && id ? `${id}-error` : undefined;
+
     return (
       <div className="space-y-1.5">
         {label && (
@@ -29,9 +31,15 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             className
           )}
           ref={ref}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={errorId}
           {...props}
         />
-        {error && <p className="text-xs text-destructive">{error}</p>}
+        {error && (
+          <p id={errorId} className="text-xs text-destructive" role="alert">
+            {error}
+          </p>
+        )}
       </div>
     );
   }
