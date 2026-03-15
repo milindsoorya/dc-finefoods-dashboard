@@ -13,7 +13,8 @@ import { EmptyState } from "@/components/dashboard/empty-state";
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
 } from "@/components/ui/table";
-import { ShieldCheck, Pencil, AlertCircle } from "lucide-react";
+import { TableSkeleton } from "@/components/ui/skeleton";
+import { ShieldCheck, Pencil, AlertCircle, CheckCircle2, Hash, CircleCheck, CircleX, Clock } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { useUserRole } from "@/contexts/user-role";
 import type { QualityCheck } from "@/types/database";
@@ -29,6 +30,7 @@ export default function QualityPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const { role: userRole } = useUserRole();
   const supabase = useMemo(() => createClient(), []);
 
@@ -100,6 +102,8 @@ export default function QualityPage() {
     if (error) {
       setSubmitError(error.message);
     } else {
+      setSuccessMessage(editingRecord ? "Record updated" : "Record saved");
+      setTimeout(() => setSuccessMessage(null), 3000);
       setShowForm(false);
       setEditingRecord(null);
       fetchData();
@@ -113,6 +117,14 @@ export default function QualityPage() {
       case "approved": return "success" as const;
       case "rejected": return "destructive" as const;
       default: return "warning" as const;
+    }
+  };
+
+  const statusIcon = (status: string) => {
+    switch (status) {
+      case "approved": return CircleCheck;
+      case "rejected": return CircleX;
+      default: return Clock;
     }
   };
 
@@ -134,9 +146,16 @@ export default function QualityPage() {
         </div>
       )}
 
+      {successMessage && (
+        <div className="flex items-center gap-2 px-4 py-3 rounded-[var(--radius)] text-sm font-medium bg-green-50 text-green-800 border border-green-200">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          {successMessage}
+        </div>
+      )}
+
       <Card className="p-0 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-muted-foreground">Loading...</div>
+          <TableSkeleton rows={5} cols={8} />
         ) : records.length === 0 && page === 0 ? (
           <EmptyState
             icon={ShieldCheck}
@@ -165,12 +184,12 @@ export default function QualityPage() {
               <TableBody>
                 {records.map((r) => (
                   <TableRow key={r.id}>
-                    <TableCell><Badge variant="outline">{r.batch_id}</Badge></TableCell>
+                    <TableCell><Badge variant="outline" icon={Hash}>{r.batch_id}</Badge></TableCell>
                     <TableCell className="font-mono text-xs">{r.grading_batch_id}</TableCell>
                     <TableCell>{Number(r.aflatoxin_ppb).toFixed(1)}</TableCell>
                     <TableCell>{Number(r.moisture_percent).toFixed(1)}%</TableCell>
                     <TableCell>{Number(r.broken_percent).toFixed(1)}%</TableCell>
-                    <TableCell><Badge variant={statusVariant(r.status)}>{r.status}</Badge></TableCell>
+                    <TableCell><Badge variant={statusVariant(r.status)} icon={statusIcon(r.status)}>{r.status}</Badge></TableCell>
                     <TableCell>{r.inspector_name}</TableCell>
                     <TableCell>{formatDate(r.date_checked)}</TableCell>
                     {canEdit && (
@@ -189,16 +208,16 @@ export default function QualityPage() {
           {/* Mobile Cards */}
           <div className="sm:hidden divide-y divide-border">
             {records.map((r) => (
-              <div key={r.id} className="p-3 space-y-1.5">
+              <div key={r.id} className="p-4 space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <Badge variant="outline">{r.batch_id}</Badge>
+                  <Badge variant="outline" icon={Hash}>{r.batch_id}</Badge>
                   <div className="flex items-center gap-1">
                     {canEdit && (
                       <Button size="sm" variant="ghost" onClick={() => openEditForm(r)} aria-label="Edit record" className="h-7 w-7 p-0">
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
                     )}
-                    <Badge variant={statusVariant(r.status)}>{r.status}</Badge>
+                    <Badge variant={statusVariant(r.status)} icon={statusIcon(r.status)}>{r.status}</Badge>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">From: {r.grading_batch_id}</p>
