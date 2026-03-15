@@ -5,9 +5,9 @@ export function Table({
   ...props
 }: React.TableHTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="w-full overflow-x-auto -webkit-overflow-scrolling-touch">
+    <div className="w-full overflow-x-auto [-webkit-overflow-scrolling:touch]">
       <table
-        className={cn("w-full text-sm min-w-[600px]", className)}
+        className={cn("w-full text-sm", className)}
         {...props}
       />
     </div>
@@ -18,7 +18,7 @@ export function TableHeader({
   className,
   ...props
 }: React.HTMLAttributes<HTMLTableSectionElement>) {
-  return <thead className={cn("border-b border-border", className)} {...props} />;
+  return <thead className={cn("border-b border-border bg-muted/30", className)} {...props} />;
 }
 
 export function TableBody({

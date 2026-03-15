@@ -20,9 +20,9 @@ export function StatCard({
   className,
 }: StatCardProps) {
   return (
-    <Card className={cn("flex items-start gap-4", className)}>
-      <div className="flex items-center justify-center w-12 h-12 rounded-[var(--radius)] bg-primary/10 text-primary shrink-0">
-        <Icon className="h-6 w-6" />
+    <Card className={cn("flex items-start gap-3 sm:gap-4", className)}>
+      <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-[var(--radius)] bg-primary/10 text-primary shrink-0">
+        <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
       </div>
       <div>
         <p className="text-sm text-muted-foreground">{title}</p>

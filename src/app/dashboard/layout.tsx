@@ -45,7 +45,7 @@ export default async function DashboardLayout({
     <div className="min-h-screen bg-background">
       <Sidebar userRole={userRole} userName={userName} />
       <main className="lg:ml-64 min-h-screen overflow-x-hidden">
-        <div className="p-3 pt-16 sm:p-4 sm:pt-16 lg:pt-6 lg:p-8 max-w-full">
+        <div className="p-3 pt-14 sm:p-4 sm:pt-14 lg:pt-6 lg:p-8 max-w-full">
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </main>

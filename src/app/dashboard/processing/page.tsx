@@ -89,44 +89,68 @@ export default function ProcessingPage() {
             description="Record your first shelling/processing batch."
             action={canEdit ? <Button onClick={() => setShowForm(true)} size="sm">Add Processing</Button> : undefined}
           />
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Batch ID</TableHead>
-                <TableHead>Intake Batch</TableHead>
-                <TableHead>Input (kg)</TableHead>
-                <TableHead>Output (kg)</TableHead>
-                <TableHead>Yield</TableHead>
-                <TableHead>Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {records.map((r) => {
-                const yieldPct = ((Number(r.output_weight_kg) / Number(r.input_weight_kg)) * 100).toFixed(1);
-                return (
-                  <TableRow key={r.id}>
-                    <TableCell><Badge variant="outline">{r.batch_id}</Badge></TableCell>
-                    <TableCell className="font-mono text-xs">{r.intake_batch_id}</TableCell>
-                    <TableCell>{Number(r.input_weight_kg).toLocaleString()}</TableCell>
-                    <TableCell className="font-medium">{Number(r.output_weight_kg).toLocaleString()}</TableCell>
-                    <TableCell>
-                      <Badge variant={Number(yieldPct) >= 25 ? "success" : "warning"}>{yieldPct}%</Badge>
-                    </TableCell>
-                    <TableCell>{formatDate(r.date_processed)}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        )}
+        ) : (<>
+
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Batch ID</TableHead>
+                  <TableHead>Intake Batch</TableHead>
+                  <TableHead>Input (kg)</TableHead>
+                  <TableHead>Output (kg)</TableHead>
+                  <TableHead>Yield</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {records.map((r) => {
+                  const yieldPct = ((Number(r.output_weight_kg) / Number(r.input_weight_kg)) * 100).toFixed(1);
+                  return (
+                    <TableRow key={r.id}>
+                      <TableCell><Badge variant="outline">{r.batch_id}</Badge></TableCell>
+                      <TableCell className="font-mono text-xs">{r.intake_batch_id}</TableCell>
+                      <TableCell>{Number(r.input_weight_kg).toLocaleString()}</TableCell>
+                      <TableCell className="font-medium">{Number(r.output_weight_kg).toLocaleString()}</TableCell>
+                      <TableCell>
+                        <Badge variant={Number(yieldPct) >= 25 ? "success" : "warning"}>{yieldPct}%</Badge>
+                      </TableCell>
+                      <TableCell>{formatDate(r.date_processed)}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="sm:hidden divide-y divide-border">
+            {records.map((r) => {
+              const yieldPct = ((Number(r.output_weight_kg) / Number(r.input_weight_kg)) * 100).toFixed(1);
+              return (
+                <div key={r.id} className="p-3 space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <Badge variant="outline">{r.batch_id}</Badge>
+                    <Badge variant={Number(yieldPct) >= 25 ? "success" : "warning"}>{yieldPct}% yield</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">From: {r.intake_batch_id}</p>
+                  <div className="flex items-center gap-4 text-sm">
+                    <span><span className="text-muted-foreground">In:</span> {Number(r.input_weight_kg).toLocaleString()} kg</span>
+                    <span><span className="text-muted-foreground">Out:</span> <span className="font-medium">{Number(r.output_weight_kg).toLocaleString()} kg</span></span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{formatDate(r.date_processed)}</p>
+                </div>
+              );
+            })}
+          </div>
+        </>)}
       </Card>
 
       <Modal open={showForm} onClose={() => setShowForm(false)} title="Record Processing Batch">
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input id="batch_id" name="batch_id" label="Batch ID" placeholder="PRC-2026-005" required />
           <Input id="intake_batch_id" name="intake_batch_id" label="Intake Batch ID" placeholder="INT-2026-001" required />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input id="input_weight_kg" name="input_weight_kg" label="Input Weight (kg)" type="number" min={1} required />
             <Input id="output_weight_kg" name="output_weight_kg" label="Output Weight (kg)" type="number" min={1} required />
           </div>

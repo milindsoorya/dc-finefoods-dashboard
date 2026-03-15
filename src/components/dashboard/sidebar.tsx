@@ -73,7 +73,7 @@ export function Sidebar({ userRole, userName }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+      <nav className="flex-1 p-2 sm:p-3 space-y-0.5 overflow-y-auto overscroll-contain">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2">
           Pipeline
         </p>
@@ -87,7 +87,7 @@ export function Sidebar({ userRole, userName }: SidebarProps) {
               href={item.href}
               onClick={() => setMobileOpen(false)}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius)] text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-3 sm:py-2.5 rounded-[var(--radius)] text-sm font-medium transition-colors",
                 isActive
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -114,7 +114,7 @@ export function Sidebar({ userRole, userName }: SidebarProps) {
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius)] text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-3 sm:py-2.5 rounded-[var(--radius)] text-sm font-medium transition-colors",
                     isActive
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -145,7 +145,7 @@ export function Sidebar({ userRole, userName }: SidebarProps) {
           href="/dashboard/settings"
           onClick={() => setMobileOpen(false)}
           className={cn(
-            "flex items-center gap-2 text-sm w-full px-2 py-1.5 rounded transition-colors",
+            "flex items-center gap-2 text-sm w-full px-2 py-2.5 sm:py-1.5 rounded transition-colors",
             pathname === "/dashboard/settings"
               ? "text-primary font-medium"
               : "text-muted-foreground hover:text-foreground"
@@ -156,7 +156,7 @@ export function Sidebar({ userRole, userName }: SidebarProps) {
         </Link>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive w-full px-2 py-1.5 rounded transition-colors cursor-pointer"
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive w-full px-2 py-2.5 sm:py-1.5 rounded transition-colors cursor-pointer"
         >
           <LogOut className="h-4 w-4" />
           Sign Out
@@ -170,7 +170,8 @@ export function Sidebar({ userRole, userName }: SidebarProps) {
       {/* Mobile toggle */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="fixed top-4 left-4 z-50 lg:hidden bg-card border border-border rounded-[var(--radius)] p-2 shadow-sm cursor-pointer"
+        className="fixed top-3 left-3 z-50 lg:hidden bg-card border border-border rounded-[var(--radius)] p-2.5 shadow-md cursor-pointer active:scale-95 transition-transform"
+        aria-label={mobileOpen ? "Close menu" : "Open menu"}
       >
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
@@ -178,7 +179,7 @@ export function Sidebar({ userRole, userName }: SidebarProps) {
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden backdrop-blur-[2px]"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -186,7 +187,7 @@ export function Sidebar({ userRole, userName }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-40 h-screen w-64 bg-card border-r border-border flex flex-col transition-transform lg:translate-x-0",
+          "fixed top-0 left-0 z-40 h-dvh w-[280px] sm:w-64 bg-card border-r border-border flex flex-col transition-transform duration-200 ease-out lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >

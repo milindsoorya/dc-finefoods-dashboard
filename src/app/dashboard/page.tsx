@@ -128,7 +128,7 @@ export default async function DashboardHome() {
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
           title="Total Raw Intake"
           value={`${(totalIntake / 1000).toFixed(1)}t`}
@@ -156,7 +156,7 @@ export default async function DashboardHome() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -188,7 +188,7 @@ export default async function DashboardHome() {
             Pipeline Summary
           </CardTitle>
         </CardHeader>
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-3">
           {[
             { label: "Intake", value: (intakeRes.data || []).length },
             { label: "Processed", value: (processingRes.data || []).length },
@@ -209,7 +209,7 @@ export default async function DashboardHome() {
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {/* Recent Intake */}
         <Card>
           <CardHeader>

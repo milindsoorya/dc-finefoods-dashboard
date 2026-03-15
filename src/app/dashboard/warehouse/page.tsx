@@ -90,7 +90,7 @@ export default function WarehousePage() {
 
       {/* Summary Cards */}
       {records.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card className="text-center">
             <p className="text-sm text-muted-foreground">Total Stock</p>
             <p className="text-2xl font-bold">
@@ -118,32 +118,52 @@ export default function WarehousePage() {
             description="Add warehouse stock entries after packaging."
             action={canEdit ? <Button onClick={() => setShowForm(true)} size="sm">Add Stock</Button> : undefined}
           />
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Grade</TableHead>
-                <TableHead>Weight (kg)</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Best Before</TableHead>
-                <TableHead>Pkg Batch</TableHead>
-                <TableHead>Updated</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {records.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell><Badge variant="default">{r.grade}</Badge></TableCell>
-                  <TableCell className="font-medium">{Number(r.weight_kg).toLocaleString()}</TableCell>
-                  <TableCell>{r.location}</TableCell>
-                  <TableCell>{r.best_before ? formatDate(r.best_before) : "—"}</TableCell>
-                  <TableCell className="font-mono text-xs">{r.packaging_batch_id || "—"}</TableCell>
-                  <TableCell>{formatDate(r.updated_at)}</TableCell>
+        ) : (<>
+
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Grade</TableHead>
+                  <TableHead>Weight (kg)</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Best Before</TableHead>
+                  <TableHead>Pkg Batch</TableHead>
+                  <TableHead>Updated</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+              </TableHeader>
+              <TableBody>
+                {records.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell><Badge variant="default">{r.grade}</Badge></TableCell>
+                    <TableCell className="font-medium">{Number(r.weight_kg).toLocaleString()}</TableCell>
+                    <TableCell>{r.location}</TableCell>
+                    <TableCell>{r.best_before ? formatDate(r.best_before) : "—"}</TableCell>
+                    <TableCell className="font-mono text-xs">{r.packaging_batch_id || "—"}</TableCell>
+                    <TableCell>{formatDate(r.updated_at)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="sm:hidden divide-y divide-border">
+            {records.map((r) => (
+              <div key={r.id} className="p-3 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <Badge variant="default">{r.grade}</Badge>
+                  <span className="font-medium text-sm">{Number(r.weight_kg).toLocaleString()} kg</span>
+                </div>
+                <p className="text-sm">{r.location}</p>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Best before: {r.best_before ? formatDate(r.best_before) : "—"}</span>
+                  <span>{formatDate(r.updated_at)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>)}
       </Card>
 
       <Modal open={showForm} onClose={() => setShowForm(false)} title="Add Stock Entry">
