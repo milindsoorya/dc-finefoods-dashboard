@@ -13,7 +13,8 @@ import { EmptyState } from "@/components/dashboard/empty-state";
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
 } from "@/components/ui/table";
-import { Ship, Pencil, AlertCircle } from "lucide-react";
+import { TableSkeleton } from "@/components/ui/skeleton";
+import { Ship, Pencil, AlertCircle, CheckCircle2, Truck, Package, Clock } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { useUserRole } from "@/contexts/user-role";
 import type { Shipment } from "@/types/database";
@@ -44,6 +45,7 @@ export default function ShipmentsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const { role: userRole } = useUserRole();
   const supabase = useMemo(() => createClient(), []);
 
@@ -64,6 +66,7 @@ export default function ShipmentsPage() {
   }, [supabase, page]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
   }, [fetchData]);
 
@@ -116,6 +119,8 @@ export default function ShipmentsPage() {
     if (error) {
       setSubmitError(error.message);
     } else {
+      setSuccessMessage(editingRecord ? "Shipment updated" : "Shipment saved");
+      setTimeout(() => setSuccessMessage(null), 3000);
       setShowForm(false);
       setEditingRecord(null);
       fetchData();
@@ -130,6 +135,15 @@ export default function ShipmentsPage() {
       case "in_transit": return "warning" as const;
       case "packed": return "default" as const;
       default: return "outline" as const;
+    }
+  };
+
+  const statusIcon = (status: string) => {
+    switch (status) {
+      case "delivered": return CheckCircle2;
+      case "in_transit": return Truck;
+      case "packed": return Package;
+      default: return Clock;
     }
   };
 
@@ -151,9 +165,16 @@ export default function ShipmentsPage() {
         </div>
       )}
 
+      {successMessage && (
+        <div className="flex items-center gap-2 px-4 py-3 rounded-[var(--radius)] text-sm font-medium bg-green-50 text-green-800 border border-green-200">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          {successMessage}
+        </div>
+      )}
+
       <Card className="p-0 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-muted-foreground">Loading...</div>
+          <TableSkeleton rows={5} cols={7} />
         ) : records.length === 0 && page === 0 ? (
           <EmptyState
             icon={Ship}
@@ -186,7 +207,7 @@ export default function ShipmentsPage() {
                     <TableCell><Badge variant="outline">{r.grade}</Badge></TableCell>
                     <TableCell>{Number(r.total_weight_kg).toLocaleString()}</TableCell>
                     <TableCell className="font-mono text-xs">{r.container_number || "—"}</TableCell>
-                    <TableCell><Badge variant={statusVariant(r.status)}>{r.status.replace("_", " ")}</Badge></TableCell>
+                    <TableCell><Badge variant={statusVariant(r.status)} icon={statusIcon(r.status)}>{r.status.replace("_", " ")}</Badge></TableCell>
                     <TableCell>{formatDate(r.departure_date)}</TableCell>
                     {canEdit && (
                       <TableCell>
@@ -204,7 +225,7 @@ export default function ShipmentsPage() {
           {/* Mobile Cards */}
           <div className="sm:hidden divide-y divide-border">
             {records.map((r) => (
-              <div key={r.id} className="p-3 space-y-1.5">
+              <div key={r.id} className="p-4 space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-medium text-sm truncate">{r.customer_name}</span>
                   <div className="flex items-center gap-1">
@@ -213,7 +234,7 @@ export default function ShipmentsPage() {
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
                     )}
-                    <Badge variant={statusVariant(r.status)}>{r.status.replace("_", " ")}</Badge>
+                    <Badge variant={statusVariant(r.status)} icon={statusIcon(r.status)}>{r.status.replace("_", " ")}</Badge>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground">{r.destination}</p>

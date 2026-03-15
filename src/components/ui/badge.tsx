@@ -1,18 +1,22 @@
 import { cn } from "@/lib/utils";
+import type { LucideIcon } from "lucide-react";
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: "default" | "success" | "warning" | "destructive" | "outline";
+  icon?: LucideIcon;
 }
 
 export function Badge({
   className,
   variant = "default",
+  icon: Icon,
+  children,
   ...props
 }: BadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+        "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium",
         {
           "bg-primary text-primary-foreground": variant === "default",
           "bg-green-100 text-green-800": variant === "success",
@@ -23,6 +27,9 @@ export function Badge({
         className
       )}
       {...props}
-    />
+    >
+      {Icon && <Icon className="h-3 w-3" />}
+      {children}
+    </span>
   );
 }

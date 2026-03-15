@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/ca
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { User, Shield, Key } from "lucide-react";
 import type { Profile } from "@/types/database";
 
@@ -36,6 +37,7 @@ export default function SettingsPage() {
         }
       }
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
   }, [supabase]);
 
@@ -85,7 +87,14 @@ export default function SettingsPage() {
 
   if (!profile) {
     return (
-      <div className="p-8 text-center text-muted-foreground">Loading...</div>
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <Skeleton className="h-48 w-full" />
+        <Skeleton className="h-36 w-full" />
+      </div>
     );
   }
 

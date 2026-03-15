@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/dashboard/empty-state";
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
 } from "@/components/ui/table";
+import { TableSkeleton } from "@/components/ui/skeleton";
 import { History, Eye } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import type { AuditLogEntry } from "@/types/database";
@@ -34,6 +35,7 @@ export default function AuditPage() {
   }, [supabase, page]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
   }, [fetchData]);
 
@@ -82,7 +84,7 @@ export default function AuditPage() {
 
       <Card className="p-0 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-muted-foreground">Loading...</div>
+          <TableSkeleton rows={5} cols={6} />
         ) : logs.length === 0 ? (
           <EmptyState
             icon={History}
@@ -145,7 +147,7 @@ export default function AuditPage() {
                 <button
                   key={log.id}
                   onClick={() => setSelectedLog(log)}
-                  className="w-full p-3 space-y-1.5 text-left hover:bg-muted/50 transition-colors cursor-pointer"
+                  className="w-full p-4 space-y-2 text-left hover:bg-muted/50 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <Badge variant={actionVariant(log.action)}>

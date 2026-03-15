@@ -1,12 +1,12 @@
 import { cn } from "@/lib/utils";
 
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {}
+type CardProps = React.HTMLAttributes<HTMLDivElement>;
 
 export function Card({ className, ...props }: CardProps) {
   return (
     <div
       className={cn(
-        "rounded-[var(--radius)] border border-border bg-card p-4 sm:p-6 shadow-sm",
+        "rounded-[var(--radius)] border border-border bg-card p-4 sm:p-6 shadow-sm transition-shadow hover:shadow-md",
         className
       )}
       {...props}

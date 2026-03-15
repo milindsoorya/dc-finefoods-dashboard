@@ -12,7 +12,8 @@ import { EmptyState } from "@/components/dashboard/empty-state";
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
 } from "@/components/ui/table";
-import { Wheat, Pencil, AlertCircle } from "lucide-react";
+import { TableSkeleton } from "@/components/ui/skeleton";
+import { Wheat, Pencil, AlertCircle, CheckCircle2, Hash } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { useUserRole } from "@/contexts/user-role";
 import type { RawIntake } from "@/types/database";
@@ -28,6 +29,7 @@ export default function IntakePage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const { role: userRole } = useUserRole();
   const supabase = useMemo(() => createClient(), []);
 
@@ -48,6 +50,7 @@ export default function IntakePage() {
   }, [supabase, page]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
   }, [fetchData]);
 
@@ -96,6 +99,8 @@ export default function IntakePage() {
     if (error) {
       setSubmitError(error.message);
     } else {
+      setSuccessMessage(editingRecord ? "Record updated" : "Record saved");
+      setTimeout(() => setSuccessMessage(null), 3000);
       setShowForm(false);
       setEditingRecord(null);
       fetchData();
@@ -122,9 +127,16 @@ export default function IntakePage() {
         </div>
       )}
 
+      {successMessage && (
+        <div className="flex items-center gap-2 px-4 py-3 rounded-[var(--radius)] text-sm font-medium bg-green-50 text-green-800 border border-green-200">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          {successMessage}
+        </div>
+      )}
+
       <Card className="p-0 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-muted-foreground">Loading...</div>
+          <TableSkeleton rows={5} cols={6} />
         ) : records.length === 0 && page === 0 ? (
           <EmptyState
             icon={Wheat}
@@ -151,7 +163,7 @@ export default function IntakePage() {
               <TableBody>
                 {records.map((r) => (
                   <TableRow key={r.id}>
-                    <TableCell><Badge variant="outline">{r.batch_id}</Badge></TableCell>
+                    <TableCell><Badge variant="outline" icon={Hash}>{r.batch_id}</Badge></TableCell>
                     <TableCell>{r.origin_farm}</TableCell>
                     <TableCell className="font-medium">{Number(r.weight_kg).toLocaleString()}</TableCell>
                     <TableCell>{Number(r.moisture_percent).toFixed(1)}%</TableCell>
@@ -173,9 +185,9 @@ export default function IntakePage() {
           {/* Mobile Cards */}
           <div className="sm:hidden divide-y divide-border">
             {records.map((r) => (
-              <div key={r.id} className="p-3 space-y-1.5">
+              <div key={r.id} className="p-4 space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <Badge variant="outline">{r.batch_id}</Badge>
+                  <Badge variant="outline" icon={Hash}>{r.batch_id}</Badge>
                   <div className="flex items-center gap-1">
                     {canEdit && (
                       <Button size="sm" variant="ghost" onClick={() => openEditForm(r)} aria-label="Edit record" className="h-7 w-7 p-0">

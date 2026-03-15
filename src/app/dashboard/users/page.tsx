@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/dashboard/empty-state";
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
 } from "@/components/ui/table";
+import { TableSkeleton } from "@/components/ui/skeleton";
 import { Users, CheckCircle, XCircle, Clock, Shield, RotateCcw, AlertCircle } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import type { Profile } from "@/types/database";
@@ -59,6 +60,7 @@ export default function UsersPage() {
   }, [supabase]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
   }, [fetchData]);
 
@@ -303,7 +305,7 @@ export default function UsersPage() {
 
       <Card className="p-0 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-muted-foreground">Loading...</div>
+          <TableSkeleton rows={5} cols={6} />
         ) : displayUsers.length === 0 ? (
           <EmptyState
             icon={tab === "pending" ? CheckCircle : Users}
