@@ -97,43 +97,77 @@ export default function QualityPage() {
             description="Record quality control results for graded batches."
             action={canEdit ? <Button onClick={() => setShowForm(true)} size="sm">Add QC Record</Button> : undefined}
           />
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Batch ID</TableHead>
-                <TableHead>Grading Batch</TableHead>
-                <TableHead>Aflatoxin (ppb)</TableHead>
-                <TableHead>Moisture %</TableHead>
-                <TableHead>Broken %</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Inspector</TableHead>
-                <TableHead>Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {records.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell><Badge variant="outline">{r.batch_id}</Badge></TableCell>
-                  <TableCell className="font-mono text-xs">{r.grading_batch_id}</TableCell>
-                  <TableCell>{Number(r.aflatoxin_ppb).toFixed(1)}</TableCell>
-                  <TableCell>{Number(r.moisture_percent).toFixed(1)}%</TableCell>
-                  <TableCell>{Number(r.broken_percent).toFixed(1)}%</TableCell>
-                  <TableCell><Badge variant={statusVariant(r.status)}>{r.status}</Badge></TableCell>
-                  <TableCell>{r.inspector_name}</TableCell>
-                  <TableCell>{formatDate(r.date_checked)}</TableCell>
+        ) : (<>
+
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Batch ID</TableHead>
+                  <TableHead>Grading Batch</TableHead>
+                  <TableHead>Aflatoxin (ppb)</TableHead>
+                  <TableHead>Moisture %</TableHead>
+                  <TableHead>Broken %</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Inspector</TableHead>
+                  <TableHead>Date</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+              </TableHeader>
+              <TableBody>
+                {records.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell><Badge variant="outline">{r.batch_id}</Badge></TableCell>
+                    <TableCell className="font-mono text-xs">{r.grading_batch_id}</TableCell>
+                    <TableCell>{Number(r.aflatoxin_ppb).toFixed(1)}</TableCell>
+                    <TableCell>{Number(r.moisture_percent).toFixed(1)}%</TableCell>
+                    <TableCell>{Number(r.broken_percent).toFixed(1)}%</TableCell>
+                    <TableCell><Badge variant={statusVariant(r.status)}>{r.status}</Badge></TableCell>
+                    <TableCell>{r.inspector_name}</TableCell>
+                    <TableCell>{formatDate(r.date_checked)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="sm:hidden divide-y divide-border">
+            {records.map((r) => (
+              <div key={r.id} className="p-3 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <Badge variant="outline">{r.batch_id}</Badge>
+                  <Badge variant={statusVariant(r.status)}>{r.status}</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">From: {r.grading_batch_id}</p>
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Aflatoxin</p>
+                    <p className="font-medium">{Number(r.aflatoxin_ppb).toFixed(1)} ppb</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Moisture</p>
+                    <p className="font-medium">{Number(r.moisture_percent).toFixed(1)}%</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Broken</p>
+                    <p className="font-medium">{Number(r.broken_percent).toFixed(1)}%</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{r.inspector_name}</span>
+                  <span>{formatDate(r.date_checked)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>)}
       </Card>
 
       <Modal open={showForm} onClose={() => setShowForm(false)} title="Record Quality Check">
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input id="batch_id" name="batch_id" label="QC Batch ID" placeholder="QC-2026-005" required />
           <Input id="grading_batch_id" name="grading_batch_id" label="Grading Batch ID" placeholder="GRD-2026-001" required />
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Input id="aflatoxin_ppb" name="aflatoxin_ppb" label="Aflatoxin (ppb)" type="number" step="0.1" min={0} required />
             <Input id="moisture_percent" name="moisture_percent" label="Moisture %" type="number" step="0.1" min={0} max={100} required />
             <Input id="broken_percent" name="broken_percent" label="Broken %" type="number" step="0.1" min={0} max={100} required />

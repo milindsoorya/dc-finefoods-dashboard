@@ -91,51 +91,79 @@ export default function AuditPage() {
           />
         ) : (
           <>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>When</TableHead>
-                  <TableHead>Who</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Table</TableHead>
-                  <TableHead>Record</TableHead>
-                  <TableHead>Details</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {logs.map((log) => (
-                  <TableRow key={log.id}>
-                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                      {new Date(log.created_at).toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {log.user_email || "System"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={actionVariant(log.action)}>
-                        {actionLabel(log.action)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {tableLabel(log.table_name)}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {log.record_id ? log.record_id.substring(0, 8) + "..." : "—"}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setSelectedLog(log)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
+            {/* Desktop Table */}
+            <div className="hidden sm:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>When</TableHead>
+                    <TableHead>Who</TableHead>
+                    <TableHead>Action</TableHead>
+                    <TableHead>Table</TableHead>
+                    <TableHead>Record</TableHead>
+                    <TableHead>Details</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+                </TableHeader>
+                <TableBody>
+                  {logs.map((log) => (
+                    <TableRow key={log.id}>
+                      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                        {new Date(log.created_at).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {log.user_email || "System"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={actionVariant(log.action)}>
+                          {actionLabel(log.action)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {tableLabel(log.table_name)}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {log.record_id ? log.record_id.substring(0, 8) + "..." : "—"}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setSelectedLog(log)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="sm:hidden divide-y divide-border">
+              {logs.map((log) => (
+                <button
+                  key={log.id}
+                  onClick={() => setSelectedLog(log)}
+                  className="w-full p-3 space-y-1.5 text-left hover:bg-muted/50 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <Badge variant={actionVariant(log.action)}>
+                      {actionLabel(log.action)}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(log.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-sm">{tableLabel(log.table_name)}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {log.user_email || "System"}
+                  </p>
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between px-3 sm:px-4 py-3 border-t border-border">
               <Button
                 size="sm"
                 variant="outline"
@@ -165,11 +193,11 @@ export default function AuditPage() {
         open={!!selectedLog}
         onClose={() => setSelectedLog(null)}
         title="Change Details"
-        className="max-w-2xl"
+        className="sm:max-w-2xl"
       >
         {selectedLog && (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
               <div>
                 <p className="text-muted-foreground">Date</p>
                 <p className="font-medium">{new Date(selectedLog.created_at).toLocaleString()}</p>

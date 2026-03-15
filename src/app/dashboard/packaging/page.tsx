@@ -87,34 +87,56 @@ export default function PackagingPage() {
             description="Record packaging details after quality approval."
             action={canEdit ? <Button onClick={() => setShowForm(true)} size="sm">Add Packaging</Button> : undefined}
           />
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Batch ID</TableHead>
-                <TableHead>QC Batch</TableHead>
-                <TableHead>Bags</TableHead>
-                <TableHead>Net (kg)</TableHead>
-                <TableHead>Gross (kg)</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {records.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell><Badge variant="outline">{r.batch_id}</Badge></TableCell>
-                  <TableCell className="font-mono text-xs">{r.quality_batch_id}</TableCell>
-                  <TableCell className="font-medium">{r.bags_packed}</TableCell>
-                  <TableCell>{Number(r.net_weight_kg).toLocaleString()}</TableCell>
-                  <TableCell>{Number(r.gross_weight_kg).toLocaleString()}</TableCell>
-                  <TableCell>{r.packaging_type}</TableCell>
-                  <TableCell>{formatDate(r.date_packed)}</TableCell>
+        ) : (<>
+
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Batch ID</TableHead>
+                  <TableHead>QC Batch</TableHead>
+                  <TableHead>Bags</TableHead>
+                  <TableHead>Net (kg)</TableHead>
+                  <TableHead>Gross (kg)</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Date</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+              </TableHeader>
+              <TableBody>
+                {records.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell><Badge variant="outline">{r.batch_id}</Badge></TableCell>
+                    <TableCell className="font-mono text-xs">{r.quality_batch_id}</TableCell>
+                    <TableCell className="font-medium">{r.bags_packed}</TableCell>
+                    <TableCell>{Number(r.net_weight_kg).toLocaleString()}</TableCell>
+                    <TableCell>{Number(r.gross_weight_kg).toLocaleString()}</TableCell>
+                    <TableCell>{r.packaging_type}</TableCell>
+                    <TableCell>{formatDate(r.date_packed)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="sm:hidden divide-y divide-border">
+            {records.map((r) => (
+              <div key={r.id} className="p-3 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <Badge variant="outline">{r.batch_id}</Badge>
+                  <span className="text-xs text-muted-foreground">{formatDate(r.date_packed)}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">QC: {r.quality_batch_id}</p>
+                <div className="flex items-center gap-4 text-sm">
+                  <span><span className="text-muted-foreground">Bags:</span> <span className="font-medium">{r.bags_packed}</span></span>
+                  <span><span className="text-muted-foreground">Net:</span> {Number(r.net_weight_kg).toLocaleString()} kg</span>
+                  <span><span className="text-muted-foreground">Gross:</span> {Number(r.gross_weight_kg).toLocaleString()} kg</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{r.packaging_type}</p>
+              </div>
+            ))}
+          </div>
+        </>)}
       </Card>
 
       <Modal open={showForm} onClose={() => setShowForm(false)} title="Record Packaging">
@@ -122,7 +144,7 @@ export default function PackagingPage() {
           <Input id="batch_id" name="batch_id" label="Batch ID" placeholder="PKG-2026-004" required />
           <Input id="quality_batch_id" name="quality_batch_id" label="QC Batch ID" placeholder="QC-2026-001" required />
           <Input id="bags_packed" name="bags_packed" label="Bags Packed" type="number" min={1} required />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input id="net_weight_kg" name="net_weight_kg" label="Net Weight (kg)" type="number" min={1} required />
             <Input id="gross_weight_kg" name="gross_weight_kg" label="Gross Weight (kg)" type="number" min={1} required />
           </div>

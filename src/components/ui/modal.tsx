@@ -34,14 +34,14 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4"
       onClick={(e) => {
         if (e.target === overlayRef.current) onClose();
       }}
     >
       <div
         className={cn(
-          "w-full max-w-lg rounded-[var(--radius)] bg-card p-6 shadow-lg max-h-[90vh] overflow-y-auto",
+          "w-full sm:max-w-lg rounded-t-2xl sm:rounded-[var(--radius)] bg-card p-4 sm:p-6 shadow-lg max-h-[85dvh] sm:max-h-[90vh] overflow-y-auto",
           className
         )}
       >
@@ -49,7 +49,8 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
           <h2 className="text-lg font-semibold">{title}</h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1 hover:bg-muted cursor-pointer"
+            className="rounded-full p-2 hover:bg-muted cursor-pointer -mr-1"
+            aria-label="Close"
           >
             <X className="h-5 w-5" />
           </button>

@@ -30,21 +30,17 @@ export function StockPieChart({ data }: StockChartProps) {
   if (data.length === 0) return null;
 
   return (
-    <ResponsiveContainer width="100%" height={280}>
+    <ResponsiveContainer width="100%" height={240}>
       <PieChart>
         <Pie
           data={data}
           cx="50%"
           cy="50%"
-          innerRadius={60}
-          outerRadius={100}
+          innerRadius={50}
+          outerRadius={85}
           paddingAngle={3}
           dataKey="weight"
           nameKey="grade"
-          label={({ name, value }) => {
-            const w = Number(value);
-            return `${name}: ${w >= 1000 ? `${(w / 1000).toFixed(1)}t` : `${w}kg`}`;
-          }}
         >
           {data.map((entry) => (
             <Cell
@@ -73,12 +69,12 @@ export function IntakeBarChart({ data }: IntakeChartProps) {
   if (data.length === 0) return null;
 
   return (
-    <ResponsiveContainer width="100%" height={280}>
-      <BarChart data={data}>
+    <ResponsiveContainer width="100%" height={240}>
+      <BarChart data={data} margin={{ left: -10, right: 5 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-        <XAxis dataKey="month" fontSize={12} />
+        <XAxis dataKey="month" fontSize={11} tickMargin={4} />
         <YAxis
-          fontSize={12}
+          fontSize={11}
           tickFormatter={(v) =>
             v >= 1000 ? `${(v / 1000).toFixed(0)}t` : `${v}`
           }

@@ -346,7 +346,7 @@ export default function UsersPage() {
                             options={roleOptions}
                             defaultValue={u.role}
                             onChange={(e) => updateRole(u.id, e.target.value)}
-                            className="w-32"
+                            className="w-auto min-w-[8rem]"
                           />
                         ) : (
                           <Badge variant={roleVariant(u.role)}>{u.role}</Badge>
@@ -358,7 +358,7 @@ export default function UsersPage() {
                             options={stageOptions}
                             defaultValue={u.assigned_stage || ""}
                             onChange={(e) => updateStage(u.id, e.target.value)}
-                            className="w-36"
+                            className="w-auto min-w-[9rem]"
                           />
                         </TableCell>
                       )}

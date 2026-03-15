@@ -140,26 +140,26 @@ export default function SettingsPage() {
         </CardHeader>
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground w-24">Role:</span>
+            <span className="text-sm text-muted-foreground w-20 sm:w-24 shrink-0">Role:</span>
             <Badge variant="default">{profile.role}</Badge>
             <span className="text-xs text-muted-foreground">
               {roleLabel[profile.role] || profile.role}
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground w-24">Status:</span>
+            <span className="text-sm text-muted-foreground w-20 sm:w-24 shrink-0">Status:</span>
             <Badge variant={profile.account_status === "approved" ? "success" : "warning"}>
               {profile.account_status}
             </Badge>
           </div>
           {profile.assigned_stage && (
             <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground w-24">Stage:</span>
+              <span className="text-sm text-muted-foreground w-20 sm:w-24 shrink-0">Stage:</span>
               <Badge variant="outline">{profile.assigned_stage}</Badge>
             </div>
           )}
           <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground w-24">Joined:</span>
+            <span className="text-sm text-muted-foreground w-20 sm:w-24 shrink-0">Joined:</span>
             <span className="text-sm">
               {new Date(profile.created_at).toLocaleDateString()}
             </span>

@@ -114,37 +114,61 @@ export default function ShipmentsPage() {
             description="Create shipment records for export orders."
             action={canEdit ? <Button onClick={() => setShowForm(true)} size="sm">Add Shipment</Button> : undefined}
           />
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Customer</TableHead>
-                <TableHead>Destination</TableHead>
-                <TableHead>Grade</TableHead>
-                <TableHead>Weight (kg)</TableHead>
-                <TableHead>Container</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Departure</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {records.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell className="font-medium">{r.customer_name}</TableCell>
-                  <TableCell>{r.destination}</TableCell>
-                  <TableCell><Badge variant="outline">{r.grade}</Badge></TableCell>
-                  <TableCell>{Number(r.total_weight_kg).toLocaleString()}</TableCell>
-                  <TableCell className="font-mono text-xs">{r.container_number || "—"}</TableCell>
-                  <TableCell><Badge variant={statusVariant(r.status)}>{r.status.replace("_", " ")}</Badge></TableCell>
-                  <TableCell>{formatDate(r.departure_date)}</TableCell>
+        ) : (<>
+
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Destination</TableHead>
+                  <TableHead>Grade</TableHead>
+                  <TableHead>Weight (kg)</TableHead>
+                  <TableHead>Container</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Departure</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+              </TableHeader>
+              <TableBody>
+                {records.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell className="font-medium">{r.customer_name}</TableCell>
+                    <TableCell>{r.destination}</TableCell>
+                    <TableCell><Badge variant="outline">{r.grade}</Badge></TableCell>
+                    <TableCell>{Number(r.total_weight_kg).toLocaleString()}</TableCell>
+                    <TableCell className="font-mono text-xs">{r.container_number || "—"}</TableCell>
+                    <TableCell><Badge variant={statusVariant(r.status)}>{r.status.replace("_", " ")}</Badge></TableCell>
+                    <TableCell>{formatDate(r.departure_date)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="sm:hidden divide-y divide-border">
+            {records.map((r) => (
+              <div key={r.id} className="p-3 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium text-sm truncate">{r.customer_name}</span>
+                  <Badge variant={statusVariant(r.status)}>{r.status.replace("_", " ")}</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">{r.destination}</p>
+                <div className="flex items-center gap-3 text-sm">
+                  <Badge variant="outline">{r.grade}</Badge>
+                  <span>{Number(r.total_weight_kg).toLocaleString()} kg</span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{r.container_number || "No container"}</span>
+                  <span>{formatDate(r.departure_date)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>)}
       </Card>
 
-      <Modal open={showForm} onClose={() => setShowForm(false)} title="Create Shipment" className="max-w-xl">
+      <Modal open={showForm} onClose={() => setShowForm(false)} title="Create Shipment" className="sm:max-w-xl">
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input id="customer_name" name="customer_name" label="Customer Name" placeholder="Al Rashid Trading LLC" required />
           <Input id="destination" name="destination" label="Destination" placeholder="Dubai, UAE" required />

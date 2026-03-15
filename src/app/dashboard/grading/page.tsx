@@ -105,32 +105,53 @@ export default function GradingPage() {
             description="Grade and sort your processed cashews."
             action={canEdit ? <Button onClick={() => setShowForm(true)} size="sm">Add Grading</Button> : undefined}
           />
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Batch ID</TableHead>
-                <TableHead>Processing Batch</TableHead>
-                <TableHead>Grade</TableHead>
-                <TableHead>Weight (kg)</TableHead>
-                <TableHead>Reject %</TableHead>
-                <TableHead>Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {records.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell><Badge variant="outline">{r.batch_id}</Badge></TableCell>
-                  <TableCell className="font-mono text-xs">{r.processing_batch_id}</TableCell>
-                  <TableCell><Badge variant={gradeColor(r.grade)}>{r.grade}</Badge></TableCell>
-                  <TableCell className="font-medium">{Number(r.weight_kg).toLocaleString()}</TableCell>
-                  <TableCell>{Number(r.reject_percent).toFixed(1)}%</TableCell>
-                  <TableCell>{formatDate(r.date_graded)}</TableCell>
+        ) : (<>
+
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Batch ID</TableHead>
+                  <TableHead>Processing Batch</TableHead>
+                  <TableHead>Grade</TableHead>
+                  <TableHead>Weight (kg)</TableHead>
+                  <TableHead>Reject %</TableHead>
+                  <TableHead>Date</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+              </TableHeader>
+              <TableBody>
+                {records.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell><Badge variant="outline">{r.batch_id}</Badge></TableCell>
+                    <TableCell className="font-mono text-xs">{r.processing_batch_id}</TableCell>
+                    <TableCell><Badge variant={gradeColor(r.grade)}>{r.grade}</Badge></TableCell>
+                    <TableCell className="font-medium">{Number(r.weight_kg).toLocaleString()}</TableCell>
+                    <TableCell>{Number(r.reject_percent).toFixed(1)}%</TableCell>
+                    <TableCell>{formatDate(r.date_graded)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="sm:hidden divide-y divide-border">
+            {records.map((r) => (
+              <div key={r.id} className="p-3 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <Badge variant="outline">{r.batch_id}</Badge>
+                  <Badge variant={gradeColor(r.grade)}>{r.grade}</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">From: {r.processing_batch_id}</p>
+                <div className="flex items-center gap-4 text-sm">
+                  <span><span className="text-muted-foreground">Weight:</span> <span className="font-medium">{Number(r.weight_kg).toLocaleString()} kg</span></span>
+                  <span><span className="text-muted-foreground">Reject:</span> {Number(r.reject_percent).toFixed(1)}%</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{formatDate(r.date_graded)}</p>
+              </div>
+            ))}
+          </div>
+        </>)}
       </Card>
 
       <Modal open={showForm} onClose={() => setShowForm(false)} title="Record Grading">
@@ -138,7 +159,7 @@ export default function GradingPage() {
           <Input id="batch_id" name="batch_id" label="Batch ID" placeholder="GRD-2026-005" required />
           <Input id="processing_batch_id" name="processing_batch_id" label="Processing Batch ID" placeholder="PRC-2026-001" required />
           <Select id="grade" name="grade" label="Grade" options={gradeOptions} defaultValue="WW240" />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input id="weight_kg" name="weight_kg" label="Weight (kg)" type="number" min={1} required />
             <Input id="reject_percent" name="reject_percent" label="Reject %" type="number" step="0.1" min={0} max={100} defaultValue="0" required />
           </div>

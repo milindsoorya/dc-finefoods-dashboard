@@ -101,36 +101,61 @@ export default function IntakePage() {
             }
           />
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Batch ID</TableHead>
-                <TableHead>Origin Farm</TableHead>
-                <TableHead>Weight (kg)</TableHead>
-                <TableHead>Moisture %</TableHead>
-                <TableHead>Date Received</TableHead>
-                <TableHead>Notes</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {records.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell>
-                    <Badge variant="outline">{r.batch_id}</Badge>
-                  </TableCell>
-                  <TableCell>{r.origin_farm}</TableCell>
-                  <TableCell className="font-medium">
-                    {Number(r.weight_kg).toLocaleString()}
-                  </TableCell>
-                  <TableCell>{Number(r.moisture_percent).toFixed(1)}%</TableCell>
-                  <TableCell>{formatDate(r.date_received)}</TableCell>
-                  <TableCell className="text-muted-foreground text-xs max-w-[200px] truncate">
-                    {r.notes || "—"}
-                  </TableCell>
+          <>
+          {/* Desktop Table */}
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Batch ID</TableHead>
+                  <TableHead>Origin Farm</TableHead>
+                  <TableHead>Weight (kg)</TableHead>
+                  <TableHead>Moisture %</TableHead>
+                  <TableHead>Date Received</TableHead>
+                  <TableHead>Notes</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {records.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell>
+                      <Badge variant="outline">{r.batch_id}</Badge>
+                    </TableCell>
+                    <TableCell>{r.origin_farm}</TableCell>
+                    <TableCell className="font-medium">
+                      {Number(r.weight_kg).toLocaleString()}
+                    </TableCell>
+                    <TableCell>{Number(r.moisture_percent).toFixed(1)}%</TableCell>
+                    <TableCell>{formatDate(r.date_received)}</TableCell>
+                    <TableCell className="text-muted-foreground text-xs max-w-[200px] truncate">
+                      {r.notes || "—"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="sm:hidden divide-y divide-border">
+            {records.map((r) => (
+              <div key={r.id} className="p-3 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <Badge variant="outline">{r.batch_id}</Badge>
+                  <span className="text-xs text-muted-foreground">{formatDate(r.date_received)}</span>
+                </div>
+                <p className="text-sm font-medium">{r.origin_farm}</p>
+                <div className="flex items-center gap-4 text-sm">
+                  <span><span className="text-muted-foreground">Weight:</span> {Number(r.weight_kg).toLocaleString()} kg</span>
+                  <span><span className="text-muted-foreground">Moisture:</span> {Number(r.moisture_percent).toFixed(1)}%</span>
+                </div>
+                {r.notes && (
+                  <p className="text-xs text-muted-foreground truncate">{r.notes}</p>
+                )}
+              </div>
+            ))}
+          </div>
+          </>
         )}
       </Card>
 
@@ -144,7 +169,7 @@ export default function IntakePage() {
             placeholder="INT-2026-006"
             required
           />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               id="weight_kg"
               name="weight_kg"
